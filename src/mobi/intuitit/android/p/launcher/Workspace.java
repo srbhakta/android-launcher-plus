@@ -19,8 +19,8 @@ package mobi.intuitit.android.p.launcher;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import mobi.intuitit.android.widget.WidgetCellLayout;
 import mobi.intuitit.android.widget.WidgetSpace;
-
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
@@ -46,13 +46,13 @@ import android.widget.Scroller;
 import android.widget.TextView;
 
 /**
- * The workspace is a wide area with a wallpaper and a finite number of screens. Each
- * screen contains a number of icons, folders or widgets the user can interact with.
- * A workspace is meant to be used with a fixed width only.
+ * The workspace is a wide area with a wallpaper and a finite number of screens. Each screen
+ * contains a number of icons, folders or widgets the user can interact with. A workspace is meant
+ * to be used with a fixed width only.
  */
 public class Workspace extends WidgetSpace implements DropTarget, DragSource, DragScroller {
     private static final int INVALID_SCREEN = -1;
-    
+
     /**
      * The velocity at which a fling gesture will cause us to snap to the next screen
      */
@@ -72,7 +72,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
      * CellInfo for the cell that is currently being dragged
      */
     private CellLayout.CellInfo mDragInfo;
-    
+
     /**
      * Target drop area calculated during last acceptDrop call.
      */
@@ -90,12 +90,12 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     private Launcher mLauncher;
     private DragController mDragger;
-    
+
     /**
      * Cache of vacant cells, used during drag events and invalidated as needed.
      */
     private CellLayout.CellInfo mVacantCache = null;
-    
+
     private int[] mTempCell = new int[2];
     private int[] mTempEstimate = new int[2];
 
@@ -111,9 +111,11 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Used to inflate the Workspace from XML.
-     *
-     * @param context The application's context.
-     * @param attrs The attribtues set containing the Workspace's customization values.
+     * 
+     * @param context
+     *            The application's context.
+     * @param attrs
+     *            The attribtues set containing the Workspace's customization values.
      */
     public Workspace(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -121,10 +123,13 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Used to inflate the Workspace from XML.
-     *
-     * @param context The application's context.
-     * @param attrs The attribtues set containing the Workspace's customization values.
-     * @param defStyle Unused.
+     * 
+     * @param context
+     *            The application's context.
+     * @param attrs
+     *            The attribtues set containing the Workspace's customization values.
+     * @param defStyle
+     *            Unused.
      */
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -137,7 +142,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     context.getString(R.string.key_default_screen), "2");
             mDefaultScreen = Integer.parseInt(d) - 1;
         } catch (Exception e) {
-            TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Workspace, defStyle, 0);
+            TypedArray a = context
+                    .obtainStyledAttributes(attrs, R.styleable.Workspace, defStyle, 0);
             mDefaultScreen = a.getInt(R.styleable.Workspace_defaultScreen, 1);
             a.recycle();
         }
@@ -233,7 +239,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
         return folders;
     }
-    
+
     void resetDefaultScreen(int screen) {
         if (screen >= getChildCount() || screen < 0) {
             Log.e("H++ Workspace", "Cannot reset default screen to " + screen);
@@ -248,7 +254,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Returns the index of the currently displayed screen.
-     *
+     * 
      * @return The index of the currently displayed screen.
      */
     int getCurrentScreen() {
@@ -257,7 +263,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Sets the current screen.
-     *
+     * 
      * @param currentScreen
      */
     void setCurrentScreen(int currentScreen) {
@@ -268,60 +274,84 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     }
 
     /**
-     * Adds the specified child in the current screen. The position and dimension of
-     * the child are defined by x, y, spanX and spanY.
-     *
-     * @param child The child to add in one of the workspace's screens.
-     * @param x The X position of the child in the screen's grid.
-     * @param y The Y position of the child in the screen's grid.
-     * @param spanX The number of cells spanned horizontally by the child.
-     * @param spanY The number of cells spanned vertically by the child.
+     * Adds the specified child in the current screen. The position and dimension of the child are
+     * defined by x, y, spanX and spanY.
+     * 
+     * @param child
+     *            The child to add in one of the workspace's screens.
+     * @param x
+     *            The X position of the child in the screen's grid.
+     * @param y
+     *            The Y position of the child in the screen's grid.
+     * @param spanX
+     *            The number of cells spanned horizontally by the child.
+     * @param spanY
+     *            The number of cells spanned vertically by the child.
      */
     void addInCurrentScreen(View child, int x, int y, int spanX, int spanY) {
         addInScreen(child, mCurrentScreen, x, y, spanX, spanY, false);
     }
 
     /**
-     * Adds the specified child in the current screen. The position and dimension of
-     * the child are defined by x, y, spanX and spanY.
-     *
-     * @param child The child to add in one of the workspace's screens.
-     * @param x The X position of the child in the screen's grid.
-     * @param y The Y position of the child in the screen's grid.
-     * @param spanX The number of cells spanned horizontally by the child.
-     * @param spanY The number of cells spanned vertically by the child.
-     * @param insert When true, the child is inserted at the beginning of the children list.
+     * Adds the specified child in the current screen. The position and dimension of the child are
+     * defined by x, y, spanX and spanY.
+     * 
+     * @param child
+     *            The child to add in one of the workspace's screens.
+     * @param x
+     *            The X position of the child in the screen's grid.
+     * @param y
+     *            The Y position of the child in the screen's grid.
+     * @param spanX
+     *            The number of cells spanned horizontally by the child.
+     * @param spanY
+     *            The number of cells spanned vertically by the child.
+     * @param insert
+     *            When true, the child is inserted at the beginning of the children list.
      */
     void addInCurrentScreen(View child, int x, int y, int spanX, int spanY, boolean insert) {
         addInScreen(child, mCurrentScreen, x, y, spanX, spanY, insert);
     }
 
     /**
-     * Adds the specified child in the specified screen. The position and dimension of
-     * the child are defined by x, y, spanX and spanY.
-     *
-     * @param child The child to add in one of the workspace's screens.
-     * @param screen The screen in which to add the child.
-     * @param x The X position of the child in the screen's grid.
-     * @param y The Y position of the child in the screen's grid.
-     * @param spanX The number of cells spanned horizontally by the child.
-     * @param spanY The number of cells spanned vertically by the child.
+     * Adds the specified child in the specified screen. The position and dimension of the child are
+     * defined by x, y, spanX and spanY.
+     * 
+     * @param child
+     *            The child to add in one of the workspace's screens.
+     * @param screen
+     *            The screen in which to add the child.
+     * @param x
+     *            The X position of the child in the screen's grid.
+     * @param y
+     *            The Y position of the child in the screen's grid.
+     * @param spanX
+     *            The number of cells spanned horizontally by the child.
+     * @param spanY
+     *            The number of cells spanned vertically by the child.
      */
     void addInScreen(View child, int screen, int x, int y, int spanX, int spanY) {
         addInScreen(child, screen, x, y, spanX, spanY, false);
     }
 
     /**
-     * Adds the specified child in the specified screen. The position and dimension of
-     * the child are defined by x, y, spanX and spanY.
-     *
-     * @param child The child to add in one of the workspace's screens.
-     * @param screen The screen in which to add the child.
-     * @param x The X position of the child in the screen's grid.
-     * @param y The Y position of the child in the screen's grid.
-     * @param spanX The number of cells spanned horizontally by the child.
-     * @param spanY The number of cells spanned vertically by the child.
-     * @param insert When true, the child is inserted at the beginning of the children list.
+     * Adds the specified child in the specified screen. The position and dimension of the child are
+     * defined by x, y, spanX and spanY.
+     * 
+     * @param child
+     *            The child to add in one of the workspace's screens.
+     * @param screen
+     *            The screen in which to add the child.
+     * @param x
+     *            The X position of the child in the screen's grid.
+     * @param y
+     *            The Y position of the child in the screen's grid.
+     * @param spanX
+     *            The number of cells spanned horizontally by the child.
+     * @param spanY
+     *            The number of cells spanned vertically by the child.
+     * @param insert
+     *            When true, the child is inserted at the beginning of the children list.
      */
     void addInScreen(View child, int screen, int x, int y, int spanX, int spanY, boolean insert) {
         if (screen < 0 || screen >= getChildCount()) {
@@ -350,8 +380,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     }
 
     void addWidget(View view, Widget widget, boolean insert) {
-        addInScreen(view, widget.screen, widget.cellX, widget.cellY, widget.spanX,
-                widget.spanY, insert);
+        addInScreen(view, widget.screen, widget.cellX, widget.cellY, widget.spanX, widget.spanY,
+                insert);
     }
 
     CellLayout.CellInfo findAllVacantCells(boolean[] occupied) {
@@ -361,7 +391,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         }
         return null;
     }
-    
+
     CellLayout.CellInfo findAllVacantCellsFromModel() {
         CellLayout group = (CellLayout) getChildAt(mCurrentScreen);
         if (group != null) {
@@ -383,8 +413,9 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Registers the specified listener on each screen contained in this workspace.
-     *
-     * @param l The listener used to respond to long clicks.
+     * 
+     * @param l
+     *            The listener used to respond to long clicks.
      */
     @Override
     public void setOnLongClickListener(OnLongClickListener l) {
@@ -411,7 +442,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
         }
     }
-    
+
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
@@ -419,10 +450,25 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             updateWallpaperOffset();
             postInvalidate();
         } else if (mNextScreen != INVALID_SCREEN) {
+            int lastScreen = mCurrentScreen;
             mCurrentScreen = Math.max(0, Math.min(mNextScreen, getChildCount() - 1));
+
+            // set screen and indicator
             Launcher.setScreen(mCurrentScreen);
             if (mLauncher != null)
                 mLauncher.indicateScreen(mCurrentScreen);
+
+            // notify widget about screen changed
+            View changedView;
+            if (lastScreen != mCurrentScreen) {
+                changedView = getChildAt(lastScreen); // A screen get out
+                if (changedView instanceof WidgetCellLayout)
+                    ((WidgetCellLayout) changedView).onViewportOut();
+            }
+            changedView = getChildAt(mCurrentScreen); // A screen get in
+            if (changedView instanceof WidgetCellLayout)
+                ((WidgetCellLayout) changedView).onViewportIn();
+
             mNextScreen = INVALID_SCREEN;
             clearChildrenCache();
         }
@@ -453,8 +499,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             final View view = mLauncher.getDrawerHandle();
             final int top = view.getTop() + view.getHeight();
 
-            canvas.clipRect(getScrollX(), top, getScrollX() + mDrawerContentWidth,
-                    top + mDrawerContentHeight, Region.Op.DIFFERENCE);
+            canvas.clipRect(getScrollX(), top, getScrollX() + mDrawerContentWidth, top
+                    + mDrawerContentHeight, Region.Op.DIFFERENCE);
         }
 
         // ViewGroup.dispatchDraw() supports many features we don't need:
@@ -469,8 +515,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         } else {
             final long drawingTime = getDrawingTime();
             // If we are flinging, draw only the current screen and the target screen
-            if (mNextScreen >= 0 && mNextScreen < getChildCount() &&
-                    Math.abs(mCurrentScreen - mNextScreen) == 1) {
+            if (mNextScreen >= 0 && mNextScreen < getChildCount()
+                    && Math.abs(mCurrentScreen - mNextScreen) == 1) {
                 drawChild(canvas, getChildAt(mCurrentScreen), drawingTime);
                 drawChild(canvas, getChildAt(mNextScreen), drawingTime);
             } else {
@@ -587,7 +633,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     if (mCurrentScreen > 0) {
                         getChildAt(mCurrentScreen - 1).addFocusables(views, direction);
                     }
-                } else if (direction == View.FOCUS_RIGHT){
+                } else if (direction == View.FOCUS_RIGHT) {
                     if (mCurrentScreen < getChildCount() - 1) {
                         getChildAt(mCurrentScreen + 1).addFocusables(views, direction);
                     }
@@ -605,15 +651,13 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         }
 
         /*
-         * This method JUST determines whether we want to intercept the motion.
-         * If we return true, onTouchEvent will be called and we do the actual
-         * scrolling there.
+         * This method JUST determines whether we want to intercept the motion. If we return true,
+         * onTouchEvent will be called and we do the actual scrolling there.
          */
 
         /*
-         * Shortcut the most recurring case: the user is in the dragging
-         * state and he is moving his finger.  We want to intercept this
-         * motion.
+         * Shortcut the most recurring case: the user is in the dragging state and he is moving his
+         * finger. We want to intercept this motion.
          */
         final int action = ev.getAction();
         if ((action == MotionEvent.ACTION_MOVE) && (mTouchState != TOUCH_STATE_REST)) {
@@ -624,68 +668,65 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         final float y = ev.getY();
 
         switch (action) {
-            case MotionEvent.ACTION_MOVE:
-                /*
-                 * mIsBeingDragged == false, otherwise the shortcut would have caught it. Check
-                 * whether the user has moved far enough from his original down touch.
-                 */
+        case MotionEvent.ACTION_MOVE:
+            /*
+             * mIsBeingDragged == false, otherwise the shortcut would have caught it. Check whether
+             * the user has moved far enough from his original down touch.
+             */
 
-                /*
-                 * Locally do absolute value. mLastMotionX is set to the y value
-                 * of the down event.
-                 */
-                final int xDiff = (int) Math.abs(x - mLastMotionX);
-                final int yDiff = (int) Math.abs(y - mLastMotionY);
+            /*
+             * Locally do absolute value. mLastMotionX is set to the y value of the down event.
+             */
+            final int xDiff = (int) Math.abs(x - mLastMotionX);
+            final int yDiff = (int) Math.abs(y - mLastMotionY);
 
-                final int touchSlop = mTouchSlop;
-                boolean xMoved = xDiff > touchSlop;
-                boolean yMoved = yDiff > touchSlop;
-                
-                if (xMoved || yMoved) {
-                    
-                    if (xMoved) {
-                        // Scroll if the user moved far enough along the X axis
-                        mTouchState = TOUCH_STATE_SCROLLING;
-                        enableChildrenCache();
-                    }
-                    // Either way, cancel any pending longpress
-                    if (mAllowLongPress) {
-                        mAllowLongPress = false;
-                        // Try canceling the long press. It could also have been scheduled
-                        // by a distant descendant, so use the mAllowLongPress flag to block
-                        // everything
-                        final View currentScreen = getChildAt(mCurrentScreen);
-                        currentScreen.cancelLongPress();
-                    }
+            final int touchSlop = mTouchSlop;
+            boolean xMoved = xDiff > touchSlop;
+            boolean yMoved = yDiff > touchSlop;
+
+            if (xMoved || yMoved) {
+
+                if (xMoved) {
+                    // Scroll if the user moved far enough along the X axis
+                    mTouchState = TOUCH_STATE_SCROLLING;
+                    enableChildrenCache();
                 }
-                break;
+                // Either way, cancel any pending longpress
+                if (mAllowLongPress) {
+                    mAllowLongPress = false;
+                    // Try canceling the long press. It could also have been scheduled
+                    // by a distant descendant, so use the mAllowLongPress flag to block
+                    // everything
+                    final View currentScreen = getChildAt(mCurrentScreen);
+                    currentScreen.cancelLongPress();
+                }
+            }
+            break;
 
-            case MotionEvent.ACTION_DOWN:
-                // Remember location of down touch
-                mLastMotionX = x;
-                mLastMotionY = y;
-                mAllowLongPress = true;
+        case MotionEvent.ACTION_DOWN:
+            // Remember location of down touch
+            mLastMotionX = x;
+            mLastMotionY = y;
+            mAllowLongPress = true;
 
-                /*
-                 * If being flinged and user touches the screen, initiate drag;
-                 * otherwise don't.  mScroller.isFinished should be false when
-                 * being flinged.
-                 */
-                mTouchState = mScroller.isFinished() ? TOUCH_STATE_REST : TOUCH_STATE_SCROLLING;
-                break;
+            /*
+             * If being flinged and user touches the screen, initiate drag; otherwise don't.
+             * mScroller.isFinished should be false when being flinged.
+             */
+            mTouchState = mScroller.isFinished() ? TOUCH_STATE_REST : TOUCH_STATE_SCROLLING;
+            break;
 
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-                // Release the drag
-                clearChildrenCache();
-                mTouchState = TOUCH_STATE_REST;
-                mAllowLongPress = false;
-                break;
+        case MotionEvent.ACTION_CANCEL:
+        case MotionEvent.ACTION_UP:
+            // Release the drag
+            clearChildrenCache();
+            mTouchState = TOUCH_STATE_REST;
+            mAllowLongPress = false;
+            break;
         }
 
         /*
-         * The only time we want to intercept motion events is if we are in the
-         * drag mode.
+         * The only time we want to intercept motion events is if we are in the drag mode.
          */
         return mTouchState != TOUCH_STATE_REST;
     }
@@ -724,8 +765,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         switch (action) {
         case MotionEvent.ACTION_DOWN:
             /*
-             * If being flinged and user touches, stop the fling. isFinished
-             * will be false if being flinged.
+             * If being flinged and user touches, stop the fling. isFinished will be false if being
+             * flinged.
              */
             if (!mScroller.isFinished()) {
                 mScroller.abortAnimation();
@@ -746,14 +787,14 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                         updateWallpaperOffset();
                     }
                 } else if (deltaX > 0) {
-                    final int availableToScroll = getChildAt(getChildCount() - 1).getRight() -
-                            getScrollX() - getWidth();
+                    final int availableToScroll = getChildAt(getChildCount() - 1).getRight()
+                            - getScrollX() - getWidth();
                     if (availableToScroll > 0) {
                         scrollBy(Math.min(availableToScroll, deltaX), 0);
                         updateWallpaperOffset();
                     }
                 }
-                
+
                 if (mLauncher != null) {
                     mLauncher.showIndicator();
                     mLauncher.mScreenHandler.removeMessages(Launcher.MSG_SCR_INDICATOR_DECAY);
@@ -798,21 +839,22 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     }
 
     void snapToScreen(int whichScreen) {
-        if (!mScroller.isFinished()) return;
+        if (!mScroller.isFinished())
+            return;
 
         clearVacantCache();
         enableChildrenCache();
 
         whichScreen = Math.max(0, Math.min(whichScreen, getChildCount() - 1));
         boolean changingScreens = whichScreen != mCurrentScreen;
-        
+
         mNextScreen = whichScreen;
-        
+
         View focusedChild = getFocusedChild();
         if (focusedChild != null && changingScreens && focusedChild == getChildAt(mCurrentScreen)) {
             focusedChild.clearFocus();
         }
-        
+
         final int newX = whichScreen * getWidth();
         final int delta = newX - getScrollX();
         mScroller.startScroll(getScrollX(), 0, delta, 0, Math.abs(delta) * 2);
@@ -821,16 +863,16 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     void startDrag(CellLayout.CellInfo cellInfo) {
         View child = cellInfo.cell;
-        
+
         // Make sure the drag was started by a long press as opposed to a long click.
         // Note that Search takes focus when clicked rather than entering touch mode
         if (!child.isInTouchMode() && !(child instanceof Search)) {
             return;
         }
-        
+
         mDragInfo = cellInfo;
         mDragInfo.screen = mCurrentScreen;
-        
+
         CellLayout current = ((CellLayout) getChildAt(mCurrentScreen));
 
         current.onDragChild(child);
@@ -872,17 +914,17 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             // Move internally
             if (mDragInfo != null) {
                 final View cell = mDragInfo.cell;
-                int index = mScroller.isFinished() ? mCurrentScreen : mNextScreen;                
+                int index = mScroller.isFinished() ? mCurrentScreen : mNextScreen;
                 if (index != mDragInfo.screen) {
                     final CellLayout originalCellLayout = (CellLayout) getChildAt(mDragInfo.screen);
                     originalCellLayout.removeView(cell);
                     cellLayout.addView(cell);
                 }
-                mTargetCell = estimateDropCell(x - xOffset, y - yOffset,
-                        mDragInfo.spanX, mDragInfo.spanY, cell, cellLayout, mTargetCell);
+                mTargetCell = estimateDropCell(x - xOffset, y - yOffset, mDragInfo.spanX,
+                        mDragInfo.spanY, cell, cellLayout, mTargetCell);
                 cellLayout.onDropChild(cell, mTargetCell);
 
-                final ItemInfo info = (ItemInfo)cell.getTag();
+                final ItemInfo info = (ItemInfo) cell.getTag();
                 CellLayout.LayoutParams lp = (CellLayout.LayoutParams) cell.getLayoutParams();
                 LauncherModel.moveItemInDatabase(mLauncher, info,
                         LauncherSettings.Favorites.CONTAINER_DESKTOP, index, lp.cellX, lp.cellY);
@@ -907,7 +949,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     private void onDropExternal(int x, int y, Object dragInfo, CellLayout cellLayout) {
         onDropExternal(x, y, dragInfo, cellLayout, false);
     }
-    
+
     private void onDropExternal(int x, int y, Object dragInfo, CellLayout cellLayout,
             boolean insertAtFirst) {
         // Drag from somewhere else
@@ -944,10 +986,10 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         LauncherModel.addOrMoveItemInDatabase(mLauncher, info,
                 LauncherSettings.Favorites.CONTAINER_DESKTOP, mCurrentScreen, lp.cellX, lp.cellY);
     }
-    
+
     /**
-     * Return the current {@link CellLayout}, correctly picking the destination
-     * screen while a scroll is in progress.
+     * Return the current {@link CellLayout}, correctly picking the destination screen while a
+     * scroll is in progress.
      */
     private CellLayout getCurrentDropLayout() {
         int index = mScroller.isFinished() ? mCurrentScreen : mNextScreen;
@@ -957,8 +999,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     /**
      * {@inheritDoc}
      */
-    public boolean acceptDrop(DragSource source, int x, int y,
-            int xOffset, int yOffset, Object dragInfo) {
+    public boolean acceptDrop(DragSource source, int x, int y, int xOffset, int yOffset,
+            Object dragInfo) {
         final CellLayout layout = getCurrentDropLayout();
         final CellLayout.CellInfo cellInfo = mDragInfo;
         final int spanX = cellInfo == null ? 1 : cellInfo.spanX;
@@ -971,44 +1013,44 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
         return mVacantCache.findCellForSpan(mTempEstimate, spanX, spanY, false);
     }
-    
+
     /**
      * {@inheritDoc}
      */
     public Rect estimateDropLocation(int x, int y, int xOffset, int yOffset, Rect recycle) {
         final CellLayout layout = getCurrentDropLayout();
-        
+
         final CellLayout.CellInfo cellInfo = mDragInfo;
         final int spanX = cellInfo == null ? 1 : cellInfo.spanX;
         final int spanY = cellInfo == null ? 1 : cellInfo.spanY;
         final View ignoreView = cellInfo == null ? null : cellInfo.cell;
-        
+
         final Rect location = recycle != null ? recycle : new Rect();
-        
+
         // Find drop cell and convert into rectangle
-        int[] dropCell = estimateDropCell(x - xOffset, y - yOffset,
-                spanX, spanY, ignoreView, layout, mTempCell);
-        
+        int[] dropCell = estimateDropCell(x - xOffset, y - yOffset, spanX, spanY, ignoreView,
+                layout, mTempCell);
+
         if (dropCell == null) {
             return null;
         }
-        
+
         layout.cellToPoint(dropCell[0], dropCell[1], mTempEstimate);
         location.left = mTempEstimate[0];
         location.top = mTempEstimate[1];
-        
+
         layout.cellToPoint(dropCell[0] + spanX, dropCell[1] + spanY, mTempEstimate);
         location.right = mTempEstimate[0];
         location.bottom = mTempEstimate[1];
-        
+
         return location;
     }
 
     /**
      * Calculate the nearest cell where the given object would be dropped.
      */
-    private int[] estimateDropCell(int pixelX, int pixelY,
-            int spanX, int spanY, View ignoreView, CellLayout layout, int[] recycle) {
+    private int[] estimateDropCell(int pixelX, int pixelY, int spanX, int spanY, View ignoreView,
+            CellLayout layout, int[] recycle) {
         // Create vacant cell cache if none exists
         if (mVacantCache == null) {
             mVacantCache = layout.findAllVacantCells(null, ignoreView);
@@ -1017,9 +1059,10 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         // Find the best target drop location
         return layout.findNearestVacantArea(pixelX, pixelY, spanX, spanY, mVacantCache, recycle);
     }
-    
+
     void setLauncher(Launcher launcher) {
         mLauncher = launcher;
+        registerProvider();
     }
 
     public void setDragger(DragController dragger) {
@@ -1030,7 +1073,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         // This is a bit expensive but safe
         clearVacantCache();
 
-        if (success){
+        if (success) {
             if (target != this && mDragInfo != null) {
                 final CellLayout cellLayout = (CellLayout) getChildAt(mDragInfo.screen);
                 cellLayout.removeView(mDragInfo.cell);
@@ -1056,8 +1099,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     public void scrollRight() {
         clearVacantCache();
-        if (mNextScreen == INVALID_SCREEN && mCurrentScreen < getChildCount() -1 &&
-                mScroller.isFinished()) {
+        if (mNextScreen == INVALID_SCREEN && mCurrentScreen < getChildCount() - 1
+                && mScroller.isFinished()) {
             snapToScreen(mCurrentScreen + 1);
         }
     }
@@ -1091,11 +1134,11 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     }
 
     /**
-     * Gets the first search widget on the current screen, if there is one.
-     * Returns <code>null</code> otherwise.
+     * Gets the first search widget on the current screen, if there is one. Returns
+     * <code>null</code> otherwise.
      */
     public Search findSearchWidgetOnCurrentScreen() {
-        CellLayout currentScreen = (CellLayout)getChildAt(mCurrentScreen);
+        CellLayout currentScreen = (CellLayout) getChildAt(mCurrentScreen);
         return findSearchWidget(currentScreen);
     }
 
@@ -1135,7 +1178,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Unlocks the SlidingDrawer so that touch events are processed.
-     *
+     * 
      * @see #lock()
      */
     public void unlock() {
@@ -1144,23 +1187,23 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 
     /**
      * Locks the SlidingDrawer so that touch events are ignores.
-     *
+     * 
      * @see #unlock()
      */
     public void lock() {
         mLocked = true;
     }
-    
+
     /**
      * @return True is long presses are still allowed for the current touch
      */
     public boolean allowLongPress() {
         return mAllowLongPress;
     }
-    
+
     /**
-     * Set true to allow long-press events to be triggered, usually checked by
-     * {@link Launcher} to accept or block dpad-initiated long-presses.
+     * Set true to allow long-press events to be triggered, usually checked by {@link Launcher} to
+     * accept or block dpad-initiated long-presses.
      */
     public void setAllowLongPress(boolean allowLongPress) {
         mAllowLongPress = allowLongPress;
@@ -1189,8 +1232,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     final Intent intent = info.intent;
                     final ComponentName name = intent.getComponent();
 
-                    if (Intent.ACTION_MAIN.equals(intent.getAction()) &&
-                            name != null && packageName.equals(name.getPackageName())) {
+                    if (Intent.ACTION_MAIN.equals(intent.getAction()) && name != null
+                            && packageName.equals(name.getPackageName())) {
                         model.removeDesktopItem(info);
                         LauncherModel.deleteItemFromDatabase(mLauncher, info);
                         childrenToRemove.add(view);
@@ -1207,8 +1250,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                         final Intent intent = appInfo.intent;
                         final ComponentName name = intent.getComponent();
 
-                        if (Intent.ACTION_MAIN.equals(intent.getAction()) &&
-                                name != null && packageName.equals(name.getPackageName())) {
+                        if (Intent.ACTION_MAIN.equals(intent.getAction()) && name != null
+                                && packageName.equals(name.getPackageName())) {
                             toRemove.add(appInfo);
                             LauncherModel.deleteItemFromDatabase(mLauncher, appInfo);
                             removedFromFolder = true;
@@ -1218,7 +1261,8 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     contents.removeAll(toRemove);
                     if (removedFromFolder) {
                         final Folder folder = getOpenFolder();
-                        if (folder != null) folder.notifyDataSetChanged();
+                        if (folder != null)
+                            folder.notifyDataSetChanged();
                     }
                 }
             }
@@ -1250,9 +1294,9 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
                     // web pages.)
                     final Intent intent = info.intent;
                     final ComponentName name = intent.getComponent();
-                    if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION &&
-                            Intent.ACTION_MAIN.equals(intent.getAction()) && name != null &&
-                            packageName.equals(name.getPackageName())) {
+                    if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+                            && Intent.ACTION_MAIN.equals(intent.getAction()) && name != null
+                            && packageName.equals(name.getPackageName())) {
 
                         final Drawable icon = Launcher.getModel().getApplicationInfoIcon(
                                 mLauncher.getPackageManager(), info);
@@ -1292,8 +1336,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
             out.writeInt(currentScreen);
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
             public SavedState createFromParcel(Parcel in) {
                 return new SavedState(in);
             }

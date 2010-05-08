@@ -39,8 +39,7 @@ public abstract class WidgetCellLayout extends ViewGroup {
     /**
      * Called when this cell layout get into the viewport
      */
-    public void inView() {
-        // TODO make this robust
+    public void onViewportOut() {
         View child;
         AppWidgetHostView widgetView;
         AppWidgetProviderInfo widgetInfo;
@@ -67,9 +66,7 @@ public abstract class WidgetCellLayout extends ViewGroup {
     /**
      * Called when this cell layout get into the viewport
      */
-    public void outView() {
-        // TODO make this robust
-
+    public void onViewportIn() {
         View child;
         AppWidgetHostView widgetView;
         AppWidgetProviderInfo widgetInfo;

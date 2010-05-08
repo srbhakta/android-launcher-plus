@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.drawable.AnimationDrawable;
@@ -127,7 +128,7 @@ public abstract class WidgetSpace extends ViewGroup {
                 ImageView imgView = (ImageView) widgetView.findViewById(imgViewId);
                 AnimationDrawable ad = (AnimationDrawable) ((ImageView) imgView).getDrawable();
 
-                if (ad == null) 
+                if (ad == null)
                     return;
 
                 if (start) {
@@ -163,7 +164,7 @@ public abstract class WidgetSpace extends ViewGroup {
          * @param intent
          * @param start
          *            true to start, false to stop
-         * @throws TweenAnimationException 
+         * @throws TweenAnimationException
          * @throws AnimationException
          */
         void startTweenAnimation(AppWidgetHostView widgetView, int viewId, Intent intent)
@@ -264,8 +265,7 @@ public abstract class WidgetSpace extends ViewGroup {
             WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
             for (int i = cells.getChildCount() - 1; i >= 0; i--) {
                 try {
-                    AppWidgetHostView widgetView = (AppWidgetHostView) cells
-                            .getChildAt(i);
+                    AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
                     if (widgetView.getAppWidgetId() == appWidgetId)
                         return widgetView;
                 } catch (Exception e) {
@@ -275,6 +275,8 @@ public abstract class WidgetSpace extends ViewGroup {
             return null;
         }
     };
+
+    ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
     class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
 
@@ -481,8 +483,7 @@ public abstract class WidgetSpace extends ViewGroup {
             WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
             for (int i = cells.getChildCount() - 1; i >= 0; i--) {
                 try {
-                    AppWidgetHostView widgetView = (AppWidgetHostView) cells
-                            .getChildAt(i);
+                    AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
                     if (widgetView.getAppWidgetId() == appWidgetId)
                         return widgetView;
                 } catch (Exception e) {
@@ -497,6 +498,45 @@ public abstract class WidgetSpace extends ViewGroup {
 
         public void onScrollStateChanged(AbsListView view, int scrollState) {
             mAllowLongPress = scrollState == SCROLL_STATE_IDLE;
+        }
+    }
+
+    /**
+     * Register receivers given by this workspace
+     */
+    public void registerProvider() {
+        final Context context = getContext();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(LauncherIntent.Action.ACTION_START_FRAME_ANIMATION);
+        filter.addAction(LauncherIntent.Action.ACTION_STOP_FRAME_ANIMATION);
+        filter.addAction(LauncherIntent.Action.ACTION_START_TWEEN_ANIMATION);
+        context.registerReceiver(mAnimationProvider, filter);
+
+        IntentFilter scrollFilter = new IntentFilter();
+        scrollFilter.addAction(LauncherIntent.Action.ACTION_SCROLL_WIDGET_START);
+        context.registerReceiver(mScrollViewProvider, scrollFilter);
+    }
+
+    /**
+     * Unregister receivers given by this workspace
+     */
+    public void unregisterProvider() {
+        final Context context = getContext();
+        unregisterReceiver(context, mAnimationProvider);
+        unregisterReceiver(context, mScrollViewProvider);
+    }
+
+    /**
+     * So en exception in unregistering last receiver will not bypass the second one
+     * 
+     * @param context
+     * @param receiver
+     */
+    void unregisterReceiver(Context context, BroadcastReceiver receiver) {
+        try {
+            context.unregisterReceiver(receiver);
+        } catch (Exception e) {
         }
     }
 
