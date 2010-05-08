@@ -19,6 +19,9 @@ package mobi.intuitit.android.p.launcher;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import mobi.intuitit.android.widget.WidgetSpace;
+
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -47,7 +50,7 @@ import android.widget.TextView;
  * screen contains a number of icons, folders or widgets the user can interact with.
  * A workspace is meant to be used with a fixed width only.
  */
-public class Workspace extends ViewGroup implements DropTarget, DragSource, DragScroller {
+public class Workspace extends WidgetSpace implements DropTarget, DragSource, DragScroller {
     private static final int INVALID_SCREEN = -1;
     
     /**
@@ -61,7 +64,6 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
 
     private boolean mFirstLayout = true;
 
-    private int mCurrentScreen;
     private int mNextScreen = INVALID_SCREEN;
     private Scroller mScroller;
     private VelocityTracker mVelocityTracker;
@@ -97,7 +99,6 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
     private int[] mTempCell = new int[2];
     private int[] mTempEstimate = new int[2];
 
-    private boolean mAllowLongPress;
     private boolean mLocked;
 
     private int mTouchSlop;
@@ -1301,5 +1302,10 @@ public class Workspace extends ViewGroup implements DropTarget, DragSource, Drag
                 return new SavedState[size];
             }
         };
+    }
+
+    @Override
+    public Activity getLauncherActivity() {
+        return mLauncher;
     }
 }
