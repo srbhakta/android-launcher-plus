@@ -18,6 +18,7 @@ package mobi.intuitit.android.p.launcher;
 
 import java.util.ArrayList;
 
+import mobi.intuitit.android.widget.WidgetCellLayout;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -35,7 +36,7 @@ import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
 
-public class CellLayout extends ViewGroup {
+public class CellLayout extends WidgetCellLayout {
     private boolean mPortrait;
 
     private int mCellWidth;
