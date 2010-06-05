@@ -104,6 +104,13 @@ public class LauncherIntent extends Intent {
             public static final String EXTRA_DATA_URI = PNAME + "EXTRA_DATA_URI";
 
             /**
+             * Allow or not contentProvider requery 
+             * - disable requery for simple MatrixCursor (not handled by Android)
+             * - enable requery for SQL database Cursor 
+             */
+            public static final String EXTRA_DATA_PROVIDER_ALLOW_REQUERY = PNAME + "EXTRA_DATA_PROVIDER_ALLOW_REQUERY";
+
+            /**
              * Whether Home++ is going to add a onItemClickListener or several onClickListener on
              * childern views of item
              */
