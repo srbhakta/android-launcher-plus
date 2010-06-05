@@ -318,6 +318,7 @@ public abstract class WidgetSpace extends ViewGroup {
 
         private synchronized String makeScrollable(Context context, Intent intent,
                 AppWidgetHostView widgetView) {
+
             // get the dummy view to replace
             final int dummyViewId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
             if (dummyViewId <= 0)
@@ -355,22 +356,13 @@ public abstract class WidgetSpace extends ViewGroup {
                 final Activity a = getLauncherActivity();
                 if (a == null)
                     return null;
+        		
                 // manage a query
-                Cursor cursor = a
-                        .managedQuery(
-                                Uri
-                                        .parse(intent
-                                                .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)),
-                                intent
-                                        .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION),
-                                intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION),
-                                intent
-                                        .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS),
-                                intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
-
+                Cursor cursor = WidgetCursorAdapter.queryForNewContent(a, context.getContentResolver(), intent);
+        	
                 // create widget cursor adapter
                 int aid = widgetView.getAppWidgetId();
-                WidgetCursorAdapter wca = new WidgetCursorAdapter(remoteContext, cursor, intent,
+                WidgetCursorAdapter wca = new WidgetCursorAdapter(a, remoteContext, cursor, intent,
                         appWidgetProvider, aid, dummyViewId);
                 lv.setOnScrollListener(this);
                 lv.setAdapter(wca);
