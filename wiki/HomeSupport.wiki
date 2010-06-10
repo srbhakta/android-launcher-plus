@@ -1,4 +1,4 @@
-#summary List of alternative Home supporting scrollable listview and animations
+#summary List of alternative Home supporting scrollable listviews and animations
 
 =Introduction=
 
