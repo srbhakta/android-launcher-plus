@@ -339,14 +339,21 @@ public abstract class WidgetSpace extends ViewGroup {
                 if (listViewResId <= 0) {
                     // try to post the newly created listview to the widget
                     lv = postListView(widgetView, dummyViewId);
-                    if (lv == null)
+                    if (lv == null) {
                         return "Cannot create the default list view.";
+                    } else {                    
+                        // avoid listView focus when returning to Home
+                    	lv.setFocusableInTouchMode(false);
+                    }
                 } else {
                     // TODO inflate it
                     LayoutInflater inflater = LayoutInflater.from(remoteContext);
                     View v = inflater.inflate(listViewResId, null);
                     if (v instanceof ListView) {
                         lv = (ListView) v;
+                        // avoid listView focus when returning to Home
+                        if (lv != null)
+                        	lv.setFocusableInTouchMode(false);
                         if (!replaceView(widgetView, dummyViewId, lv))
                             return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
                     } else
