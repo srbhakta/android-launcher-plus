@@ -1,4 +1,4 @@
-#summary HOW TO add scrollable and anitation support to your Home
+#summary HOW TO add scrollable and animation widgets support to your Home
 
 = Introduction =
 
