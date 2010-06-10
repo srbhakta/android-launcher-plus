@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import mobi.intuitit.android.content.LauncherIntent;
 import mobi.intuitit.android.p.launcher.ScreenLayout.onScreenChangeListener;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -1735,6 +1736,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                     item.spanY, !desktopLocked);
 
             workspace.requestLayout();
+
+            // finish load a widget, send it an intent
+            appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
         }
 
         if (appWidgets.isEmpty()) {
@@ -1744,6 +1748,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         } else {
             binder.obtainMessage(DesktopBinder.MESSAGE_BIND_APPWIDGETS).sendToTarget();
         }
+    }
+
+    private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
+        Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
+        		AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
+        sendBroadcast(ready);
     }
 
     class SwitcherTask extends AsyncTask<Integer, Integer, Integer> {
