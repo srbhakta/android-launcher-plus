@@ -114,7 +114,7 @@ public class WidgetCursorAdapter extends CursorAdapter {
 		mActivity = a;
 		
 		// verify is contentProvider requery is allowed
-		mAllowRequery = intent.getBooleanExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_CHILDREN_CLICKABLE, false);
+		mAllowRequery = intent.getBooleanExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_PROVIDER_ALLOW_REQUERY, false);
 
 		// Get the layout if for items
 		mItemLayoutId = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_LAYOUT_ID, -1);
