@@ -1,5 +1,7 @@
 package mobi.intuitit.android.widget;
 
+import java.util.HashMap;
+
 import mobi.intuitit.android.content.LauncherIntent;
 import android.app.Activity;
 import android.appwidget.AppWidgetHostView;
@@ -276,112 +278,125 @@ public abstract class WidgetSpace extends ViewGroup {
         }
     };
 
-    ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
+	ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
-    class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
+	// storage for cursor for each provider data Uri
+	class ScrollViewInfos {
+		Cursor lvCursor = null;
+		WidgetCursorAdapter lvCursorAdapter = null;
+	}
+	HashMap<String, ScrollViewInfos> mScrollViewCursorInfos = new HashMap<String, ScrollViewInfos>();
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.i("RefactorReceiver", "" + intent);
+	class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
 
-            // Try to get the widget view
-            int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
-            AppWidgetHostView widgetView = findWidget(widgetId);
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			Log.i("RefactorReceiver", "" + intent);
 
-            if (widgetView == null) {
+			// Try to get the widget view
+			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+			AppWidgetHostView widgetView = findWidget(widgetId);
+
+			if (widgetView == null) {
                 getContext().sendBroadcast(
                         intent.setAction(LauncherIntent.Error.ERROR_SCROLL_CURSOR).putExtra(
                                 LauncherIntent.Extra.EXTRA_ERROR_MESSAGE,
                                 "Cannot find app widget with id: " + widgetId));
-                return;
-            }
+				return;
+			}
 
-            final ComponentName appWidgetProvider = widgetView.getAppWidgetInfo().provider;
+			final ComponentName appWidgetProvider = widgetView.getAppWidgetInfo().provider;
 
-            if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_START)) {
-                String error = makeScrollable(context, intent, widgetView);
-                if (error == null) {
-                    // send finish signal
-                    intent.setComponent(appWidgetProvider);
+			if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_START)) {
+				String error = makeScrollable(context, intent, widgetView);
+				if (error == null) {
+					// send finish signal
+					intent.setComponent(appWidgetProvider);
                     getContext().sendBroadcast(
                             intent.setAction(LauncherIntent.Action.ACTION_FINISH));
-                } else {
-                    // send error message
-                    intent.setComponent(appWidgetProvider);
-                    getContext().sendBroadcast(
-                            intent.setAction(LauncherIntent.Error.ERROR_SCROLL_CURSOR).putExtra(
-                                    LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, error));
-                }
-            }
-        }
+				} else {
+					// send error message
+					intent.setComponent(appWidgetProvider);
+					getContext().sendBroadcast(
+							intent.setAction(LauncherIntent.Error.ERROR_SCROLL_CURSOR).putExtra(
+									LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, error));
+				}
+			}
+		}
 
         private synchronized String makeScrollable(Context context, Intent intent,
                 AppWidgetHostView widgetView) {
 
-            // get the dummy view to replace
-            final int dummyViewId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
-            if (dummyViewId <= 0)
-                return "Dummy view id needed.";
+			// get the dummy view to replace
+			final int dummyViewId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
+			if (dummyViewId <= 0)
+				return "Dummy view id needed.";
 
-            final ComponentName appWidgetProvider = widgetView.getAppWidgetInfo().provider;
+			final ComponentName appWidgetProvider = widgetView.getAppWidgetInfo().provider;
 
-            try {
-                // Create a context for loading resources
+			try {
+				// Create a context for loading resources
                 Context remoteContext = getContext().createPackageContext(
                         widgetView.getAppWidgetInfo().provider.getPackageName(),
                         Context.CONTEXT_IGNORE_SECURITY);
 
-                ListView lv;
+				ListView lv;
 
                 final int listViewResId = intent.getIntExtra(
                         LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_LAYOUT_ID, -1);
-                if (listViewResId <= 0) {
-                    // try to post the newly created listview to the widget
-                    lv = postListView(widgetView, dummyViewId);
-                    if (lv == null) {
-                        return "Cannot create the default list view.";
-                    } else {                    
-                        // avoid listView focus when returning to Home
-                    	lv.setFocusableInTouchMode(false);
-                    }
-                } else {
-                    // TODO inflate it
-                    LayoutInflater inflater = LayoutInflater.from(remoteContext);
-                    View v = inflater.inflate(listViewResId, null);
-                    if (v instanceof ListView) {
-                        lv = (ListView) v;
-                        // avoid listView focus when returning to Home
-                        if (lv != null)
-                        	lv.setFocusableInTouchMode(false);
-                        if (!replaceView(widgetView, dummyViewId, lv))
-                            return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
-                    } else
-                        return "Cannot inflate a list view from the passed layout resource id.";
-                }
+				if (listViewResId <= 0) {
+					// try to post the newly created listview to the widget
+					lv = postListView(widgetView, dummyViewId);
+					if (lv == null) {
+						return "Cannot create the default list view.";
+					} else {
+						// avoid listView focus when returning to Home
+						lv.setFocusableInTouchMode(false);
+					}
+				} else {
+					// TODO inflate it
+					LayoutInflater inflater = LayoutInflater.from(remoteContext);
+					View v = inflater.inflate(listViewResId, null);
+					if (v instanceof ListView) {
+						lv = (ListView) v;
+						// avoid listView focus when returning to Home
+						if (lv != null)
+							lv.setFocusableInTouchMode(false);
+						if (!replaceView(widgetView, dummyViewId, lv))
+							return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
+					} else
+						return "Cannot inflate a list view from the passed layout resource id.";
+				}
 
-                final Activity a = getLauncherActivity();
-                if (a == null)
-                    return null;
-        		
-                // manage a query
-                Cursor cursor = WidgetCursorAdapter.queryForNewContent(a, context.getContentResolver(), intent);
-        	
-                // create widget cursor adapter
-                int aid = widgetView.getAppWidgetId();
-                WidgetCursorAdapter wca = new WidgetCursorAdapter(a, remoteContext, cursor, intent,
-                        appWidgetProvider, aid, dummyViewId);
-                lv.setOnScrollListener(this);
-                lv.setAdapter(wca);
-                if (!wca.mItemChildrenClickable)
-                    lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid,
-                            dummyViewId));
+				final int aid = widgetView.getAppWidgetId();
+				final Activity a = getLauncherActivity();
+				if (a == null)
+					return null;
 
-                return null;
-            } catch (Exception e) {
-                return e.getMessage();
-            }
-        }
+				// manage a query and cursor
+				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
+				ScrollViewInfos cursorInfos = mScrollViewCursorInfos.get(cursorDataUriString);
+				if (cursorInfos == null) {
+					cursorInfos = new ScrollViewInfos();
+					cursorInfos.lvCursor = WidgetCursorAdapter.queryForNewContent(a, context.getContentResolver(),
+							intent);
+					cursorInfos.lvCursorAdapter = new WidgetCursorAdapter(a, remoteContext, cursorInfos.lvCursor,
+							intent, appWidgetProvider, aid, dummyViewId);
+					mScrollViewCursorInfos.put(cursorDataUriString, cursorInfos);
+				} else {
+					lv.setSelection(0);
+				}
+				lv.setOnScrollListener(this);
+				lv.setAdapter(cursorInfos.lvCursorAdapter);
+				if (!cursorInfos.lvCursorAdapter.mItemChildrenClickable)
+					lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
+					
+				return null;
+			} catch (Exception e) {
+				return e.getMessage();
+			}
+		}
 
         class WidgetItemListener implements OnItemClickListener {
 
