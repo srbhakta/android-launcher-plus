@@ -246,7 +246,10 @@ public class WidgetCursorAdapter extends CursorAdapter {
 				// Prepare tag
 				view.setTag(null);
 				if (mItemChildrenClickable && itemMapping.clickable) {
-					child.setTag(cursor.getPosition());
+					if (mItemActionUriIndex >= 0)
+						child.setTag(cursor.getString(mItemActionUriIndex));
+					else
+						child.setTag(Integer.toString(cursor.getPosition()));
 					child.setOnClickListener(new ItemViewClickListener());
 				} else {
 					if (mItemActionUriIndex >= 0) {
@@ -269,7 +272,7 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 		public void onClick(View v) {
 			try {
-				int pos = (Integer) v.getTag();
+				String pos = (String) v.getTag();
 				Intent intent = new Intent(LauncherIntent.Action.ACTION_VIEW_CLICK);
 				intent.setComponent(mAppWidgetProvider);
 				intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
