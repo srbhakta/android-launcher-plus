@@ -224,7 +224,7 @@ public class WidgetCursorAdapter extends CursorAdapter {
 						break;
 					iv = (ImageView) child;
 					String uriStr = cursor.getString(itemMapping.index);
-					if (uriStr != null)
+					if ((uriStr != null) && (!uriStr.equals("")))
 						iv.setImageURI(Uri.parse(uriStr));
 					else
 						iv.setImageDrawable(null);
