@@ -38,7 +38,9 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public abstract class WidgetSpace extends ViewGroup {
 
-    protected boolean mAllowLongPress;
+    private static final String TAG = "WidgetSpace";
+
+	protected boolean mAllowLongPress;
 
     protected int mCurrentScreen;
 
@@ -284,10 +286,21 @@ public abstract class WidgetSpace extends ViewGroup {
 	class ScrollViewInfos {
 		Cursor cursor = null;
 		ListView lv = null;
+		int widgetId = -1;
 	}
 
 	HashMap<String, ScrollViewInfos> mScrollViewCursorInfos = new HashMap<String, ScrollViewInfos>();
 
+	// wjaxx. Just to know if this widget is scrollable
+	public synchronized boolean isWidgetScrollable(int widgetId)
+	{
+		for(ScrollViewInfos item: mScrollViewCursorInfos.values()){
+			if (item.widgetId ==  widgetId)
+				return true;
+		}
+		return false;
+	}
+	
 	class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
 
 		@Override
@@ -391,6 +404,7 @@ public abstract class WidgetSpace extends ViewGroup {
 						lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
 
 					cursorInfos.lv = lv;
+					cursorInfos.widgetId = aid;
 					mScrollViewCursorInfos.put(cursorDataUriString, cursorInfos);
 				} else {
 					lv = cursorInfos.lv;
