@@ -27,7 +27,10 @@ import android.view.ViewConfiguration;
  * {@inheritDoc}
  */
 public class LauncherAppWidgetHostView extends AppWidgetHostView {
-    private boolean mHasPerformedLongPress;
+	
+    private static final long WIDGET_LONG_CLICK_TIMEOUT = 2000;
+
+	private boolean mHasPerformedLongPress;
     
     private CheckForLongPress mPendingCheckForLongPress;
     
@@ -96,7 +99,8 @@ public class LauncherAppWidgetHostView extends AppWidgetHostView {
             mPendingCheckForLongPress = new CheckForLongPress();
         }
         mPendingCheckForLongPress.rememberWindowAttachCount();
-        postDelayed(mPendingCheckForLongPress, ViewConfiguration.getLongPressTimeout());
+//        postDelayed(mPendingCheckForLongPress, ViewConfiguration.getLongPressTimeout());
+        postDelayed(mPendingCheckForLongPress, WIDGET_LONG_CLICK_TIMEOUT);
     }
 
     @Override
