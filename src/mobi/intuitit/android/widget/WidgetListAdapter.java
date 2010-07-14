@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.Html;
@@ -25,7 +26,7 @@ import android.widget.TextView;
 
 /**
  * 
- * @author Koxx
+ * @author Francois DESLANDES
  * 
  */
 public class WidgetListAdapter extends BaseAdapter {
@@ -341,9 +342,12 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					// byte[] data = cursor.getBlob(itemMapping.index);
 					byte[] data = rowElement.imageBlobData;
-					if (data != null)
+					if (data != null) {
+						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
+						if (lastDrawable != null)
+							lastDrawable.getBitmap().recycle();
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
-					else if (itemMapping.defaultResource > 0)
+					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
 					else
 						iv.setImageDrawable(null);
@@ -354,9 +358,14 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					// String uriStr = cursor.getString(itemMapping.index);
 					String uriStr = rowElement.imageUri;
-					if ((uriStr != null) && (!uriStr.equals("")))
-						iv.setImageURI(Uri.parse(uriStr));
-					else
+					if ((uriStr != null) && (!uriStr.equals(""))) {
+						// recycle old bitmap
+						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
+						if (lastDrawable != null)
+							lastDrawable.getBitmap().recycle();
+						// assign new bitmap
+						iv.setImageBitmap(BitmapFactory.decodeFile(uriStr));
+					} else
 						iv.setImageDrawable(null);
 					break;
 				case LauncherIntent.Extra.Scroll.Types.IMAGERESOURCE:
@@ -365,9 +374,9 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					// int res = cursor.getInt(itemMapping.index);
 					int res = rowElement.imageResId;
-					if (res > 0)
+					if (res > 0) {
 						iv.setImageResource(res);
-					else if (itemMapping.defaultResource > 0)
+					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
 					else
 						iv.setImageDrawable(null);
