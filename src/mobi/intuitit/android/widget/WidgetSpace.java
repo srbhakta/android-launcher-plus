@@ -12,9 +12,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.database.Cursor;
+import android.database.ContentObserver;
 import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -33,280 +34,265 @@ import android.widget.AdapterView.OnItemClickListener;
 
 /**
  * 
- * @author Bo
+ * @author Bo & Koxx
  * 
  */
 public abstract class WidgetSpace extends ViewGroup {
 
-    private static final String TAG = "WidgetSpace";
+	private static final String TAG = "WidgetSpace";
 
 	protected boolean mAllowLongPress;
 
-    protected int mCurrentScreen;
+	protected int mCurrentScreen;
 
-    public WidgetSpace(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
+	public WidgetSpace(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+	}
 
-    public WidgetSpace(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
+	public WidgetSpace(Context context, AttributeSet attrs) {
+		super(context, attrs);
+	}
 
-    public WidgetSpace(Context context) {
-        super(context);
-    }
+	public WidgetSpace(Context context) {
+		super(context);
+	}
 
-    @Override
-    protected void onLayout(boolean arg0, int arg1, int arg2, int arg3, int arg4) {
-        // do nothing here
-    }
+	@Override
+	protected void onLayout(boolean arg0, int arg1, int arg2, int arg3, int arg4) {
+		// do nothing here
+	}
 
-    public abstract Activity getLauncherActivity();
+	public abstract Activity getLauncherActivity();
 
-    /**
+	/**
      * 
      */
-    BroadcastReceiver mAnimationProvider = new BroadcastReceiver() {
+	BroadcastReceiver mAnimationProvider = new BroadcastReceiver() {
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.i("AnimationProvider", "" + intent);
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			Log.i("AnimationProvider", "" + intent);
 
-            int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
-            AppWidgetHostView widgetView = null;
+			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+			AppWidgetHostView widgetView = null;
 
-            try {
-                // Find widget view in the current view
-                widgetView = findWidget(mCurrentScreen, widgetId);
+			try {
+				// Find widget view in the current view
+				widgetView = findWidget(mCurrentScreen, widgetId);
 
-                // Do corresponding animation on it
-                if (LauncherIntent.Action.ACTION_START_FRAME_ANIMATION.equals(action)) {
-                    actFrameAnimation(widgetView, intent.getIntExtra(
-                            LauncherIntent.Extra.EXTRA_IMAGEVIEW_ID, 0), intent, true);
-                } else if (LauncherIntent.Action.ACTION_STOP_FRAME_ANIMATION.equals(action)) {
-                    actFrameAnimation(widgetView, intent.getIntExtra(
-                            LauncherIntent.Extra.EXTRA_IMAGEVIEW_ID, 0), intent, false);
-                } else if (LauncherIntent.Action.ACTION_START_TWEEN_ANIMATION.equals(action)) {
-                    startTweenAnimation(widgetView, intent.getIntExtra(
-                            LauncherIntent.Extra.EXTRA_VIEW_ID, 0), intent);
-                }
-            } catch (FrameAnimationException ae) {
-                // Reset the action and broadcast
-                if (widgetView != null)
-                    intent.setComponent(widgetView.getAppWidgetInfo().provider);
-                getContext().sendBroadcast(
-                        intent.setAction(ae.mAction).putExtra(
-                                LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, ae.getMessage()));
-            } catch (TweenAnimationException ae) {
-                // Reset the action and broadcast
-                if (widgetView != null)
-                    intent.setComponent(widgetView.getAppWidgetInfo().provider);
-                getContext().sendBroadcast(
-                        intent.setAction(ae.mAction).putExtra(
-                                LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, ae.getMessage()));
-            } catch (Exception e) {
-                // TODO may be flurry may help me collect this kind of exceptions
-            }
-        }
+				// Do corresponding animation on it
+				if (LauncherIntent.Action.ACTION_START_FRAME_ANIMATION.equals(action)) {
+					actFrameAnimation(widgetView, intent.getIntExtra(LauncherIntent.Extra.EXTRA_IMAGEVIEW_ID, 0),
+							intent, true);
+				} else if (LauncherIntent.Action.ACTION_STOP_FRAME_ANIMATION.equals(action)) {
+					actFrameAnimation(widgetView, intent.getIntExtra(LauncherIntent.Extra.EXTRA_IMAGEVIEW_ID, 0),
+							intent, false);
+				} else if (LauncherIntent.Action.ACTION_START_TWEEN_ANIMATION.equals(action)) {
+					startTweenAnimation(widgetView, intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, 0), intent);
+				}
+			} catch (FrameAnimationException ae) {
+				// Reset the action and broadcast
+				if (widgetView != null)
+					intent.setComponent(widgetView.getAppWidgetInfo().provider);
+				getContext().sendBroadcast(
+						intent.setAction(ae.mAction)
+								.putExtra(LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, ae.getMessage()));
+			} catch (TweenAnimationException ae) {
+				// Reset the action and broadcast
+				if (widgetView != null)
+					intent.setComponent(widgetView.getAppWidgetInfo().provider);
+				getContext().sendBroadcast(
+						intent.setAction(ae.mAction)
+								.putExtra(LauncherIntent.Extra.EXTRA_ERROR_MESSAGE, ae.getMessage()));
+			} catch (Exception e) {
+				// TODO may be flurry may help me collect this kind of
+				// exceptions
+			}
+		}
 
-        /**
-         * 
-         * @param widgetView
-         * @param imgViewId
-         * @param intent
-         * @param start
-         *            true to start, false to stop
-         * @throws AnimationException
-         */
-        void actFrameAnimation(AppWidgetHostView widgetView, int imgViewId, Intent intent,
-                boolean start) throws FrameAnimationException {
+		/**
+		 * 
+		 * @param widgetView
+		 * @param imgViewId
+		 * @param intent
+		 * @param start
+		 *            true to start, false to stop
+		 * @throws AnimationException
+		 */
+		void actFrameAnimation(AppWidgetHostView widgetView, int imgViewId, Intent intent, boolean start)
+				throws FrameAnimationException {
 
-            if (widgetView == null)
-                throw new FrameAnimationException("Cannot find queried widget "
-                        + intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-                        + " in the current screen.");
+			if (widgetView == null)
+				throw new FrameAnimationException("Cannot find queried widget "
+						+ intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) + " in the current screen.");
 
-            // Start animation
-            try {
-                ImageView imgView = (ImageView) widgetView.findViewById(imgViewId);
-                AnimationDrawable ad = (AnimationDrawable) ((ImageView) imgView).getDrawable();
+			// Start animation
+			try {
+				ImageView imgView = (ImageView) widgetView.findViewById(imgViewId);
+				AnimationDrawable ad = (AnimationDrawable) ((ImageView) imgView).getDrawable();
 
-                if (ad == null)
-                    return;
+				if (ad == null)
+					return;
 
-                if (start) {
-                    // Start the animation
-                    ad.start();
-                    getContext()
-                            .sendBroadcast(
-                                    intent
-                                            .setComponent(widgetView.getAppWidgetInfo().provider)
-                                            .setAction(
-                                                    LauncherIntent.Notification.NOTIFICATION_FRAME_ANIMATION_STARTED));
-                } else {
-                    // Stop the animation
-                    ad.stop();
-                    getContext()
-                            .sendBroadcast(
-                                    intent
-                                            .setComponent(widgetView.getAppWidgetInfo().provider)
-                                            .setAction(
-                                                    LauncherIntent.Notification.NOTIFICATION_FRAME_ANIMATION_STOPPED));
-                }
-            } catch (Exception e) {
-                throw new FrameAnimationException(
-                        "Fail to start frame animation on queried ImageView: " + imgViewId);
-            }
+				if (start) {
+					// Start the animation
+					ad.start();
+					getContext().sendBroadcast(
+							intent.setComponent(widgetView.getAppWidgetInfo().provider).setAction(
+									LauncherIntent.Notification.NOTIFICATION_FRAME_ANIMATION_STARTED));
+				} else {
+					// Stop the animation
+					ad.stop();
+					getContext().sendBroadcast(
+							intent.setComponent(widgetView.getAppWidgetInfo().provider).setAction(
+									LauncherIntent.Notification.NOTIFICATION_FRAME_ANIMATION_STOPPED));
+				}
+			} catch (Exception e) {
+				throw new FrameAnimationException("Fail to start frame animation on queried ImageView: " + imgViewId);
+			}
 
-        }
+		}
 
-        /**
-         * 
-         * @param widgetView
-         * @param viewId
-         * @param intent
-         * @param start
-         *            true to start, false to stop
-         * @throws TweenAnimationException
-         * @throws AnimationException
-         */
-        void startTweenAnimation(AppWidgetHostView widgetView, int viewId, Intent intent)
-                throws Exception, TweenAnimationException {
+		/**
+		 * 
+		 * @param widgetView
+		 * @param viewId
+		 * @param intent
+		 * @param start
+		 *            true to start, false to stop
+		 * @throws TweenAnimationException
+		 * @throws AnimationException
+		 */
+		void startTweenAnimation(AppWidgetHostView widgetView, int viewId, Intent intent) throws Exception,
+				TweenAnimationException {
 
-            if (widgetView == null)
-                throw new NullPointerException("Cannot find queried widget "
-                        + intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-                        + " in the current screen.");
+			if (widgetView == null)
+				throw new NullPointerException("Cannot find queried widget "
+						+ intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) + " in the current screen.");
 
-            int animId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_ANIMATION_ID, -1);
+			int animId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_ANIMATION_ID, -1);
 
-            try {
-                // Create a context for resources loading later
-                Context remoteContext = getContext().createPackageContext(
-                        widgetView.getAppWidgetInfo().provider.getPackageName(),
-                        Context.CONTEXT_IGNORE_SECURITY);
+			try {
+				// Create a context for resources loading later
+				Context remoteContext = getContext().createPackageContext(
+						widgetView.getAppWidgetInfo().provider.getPackageName(), Context.CONTEXT_IGNORE_SECURITY);
 
-                // Load animation from remote context
-                Animation a = AnimationUtils.loadAnimation(remoteContext, animId);
-                a.setAnimationListener(new TweenAnimListener(intent.setComponent(widgetView
-                        .getAppWidgetInfo().provider)));
+				// Load animation from remote context
+				Animation a = AnimationUtils.loadAnimation(remoteContext, animId);
+				a.setAnimationListener(new TweenAnimListener(intent
+						.setComponent(widgetView.getAppWidgetInfo().provider)));
 
-                // Generally, I don't recommend this, for you never know if the user is still
-                // staying at this screen when the animation start
-                long animStartTime = intent.getLongExtra(
-                        LauncherIntent.Extra.EXTRA_ANIMATION_STARTTIME, -1);
-                if (animStartTime > 0) {
-                    a.setStartTime(animStartTime);
-                }
+				// Generally, I don't recommend this, for you never know if the
+				// user is still
+				// staying at this screen when the animation start
+				long animStartTime = intent.getLongExtra(LauncherIntent.Extra.EXTRA_ANIMATION_STARTTIME, -1);
+				if (animStartTime > 0) {
+					a.setStartTime(animStartTime);
+				}
 
-                // Check and verify
-                if (a.getRepeatCount() == Animation.INFINITE)
-                    a.setRepeatCount(0);
-                if (a.getRepeatCount() > 10)
-                    a.setRepeatCount(10);
+				// Check and verify
+				if (a.getRepeatCount() == Animation.INFINITE)
+					a.setRepeatCount(0);
+				if (a.getRepeatCount() > 10)
+					a.setRepeatCount(10);
 
-                // Start the animation
-                widgetView.findViewById(viewId).startAnimation(a);
+				// Start the animation
+				widgetView.findViewById(viewId).startAnimation(a);
 
-            } catch (NameNotFoundException e) {
-                throw new TweenAnimationException("Cannot load resources");
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new TweenAnimationException("Cannot start animation: " + animId);
-            }
-        }
+			} catch (NameNotFoundException e) {
+				throw new TweenAnimationException("Cannot load resources");
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new TweenAnimationException("Cannot start animation: " + animId);
+			}
+		}
 
-        /**
-         * 
-         * @author bo
-         * 
-         */
-        class TweenAnimListener implements AnimationListener {
+		/**
+		 * 
+		 * @author bo
+		 * 
+		 */
+		class TweenAnimListener implements AnimationListener {
 
-            Intent mIntent;
+			Intent mIntent;
 
-            TweenAnimListener(Intent intent) {
-                mIntent = intent;
-            }
+			TweenAnimListener(Intent intent) {
+				mIntent = intent;
+			}
 
-            public void onAnimationEnd(Animation animation) {
-                getContext()
-                        .sendBroadcast(
-                                mIntent
-                                        .setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_ENDED));
-                mIntent = null;
-                animation.setAnimationListener(null);
-            }
+			public void onAnimationEnd(Animation animation) {
+				getContext().sendBroadcast(
+						mIntent.setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_ENDED));
+				mIntent = null;
+				animation.setAnimationListener(null);
+			}
 
-            public void onAnimationRepeat(Animation animation) {
-                getContext()
-                        .sendBroadcast(
-                                mIntent
-                                        .setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_REPEATED));
-            }
+			public void onAnimationRepeat(Animation animation) {
+				getContext().sendBroadcast(
+						mIntent.setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_REPEATED));
+			}
 
-            public void onAnimationStart(Animation animation) {
-                getContext()
-                        .sendBroadcast(
-                                mIntent
-                                        .setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_STARTED));
-            }
+			public void onAnimationStart(Animation animation) {
+				getContext().sendBroadcast(
+						mIntent.setAction(LauncherIntent.Notification.NOTIFICATION_TWEEN_ANIMATION_STARTED));
+			}
 
-        }
+		}
 
-        /**
-         * Find widget in a given screen
-         * 
-         * @param screen
-         * @param appWidgetId
-         * @return
-         */
-        private final AppWidgetHostView findWidget(int screen, int appWidgetId) {
-            if (appWidgetId < 0)
-                return null;
+		/**
+		 * Find widget in a given screen
+		 * 
+		 * @param screen
+		 * @param appWidgetId
+		 * @return
+		 */
+		private final AppWidgetHostView findWidget(int screen, int appWidgetId) {
+			if (appWidgetId < 0)
+				return null;
 
-            WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
-            for (int i = cells.getChildCount() - 1; i >= 0; i--) {
-                try {
-                    AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
-                    if (widgetView.getAppWidgetId() == appWidgetId)
-                        return widgetView;
-                } catch (Exception e) {
-                }
-            }
+			WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
+			for (int i = cells.getChildCount() - 1; i >= 0; i--) {
+				try {
+					AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
+					if (widgetView.getAppWidgetId() == appWidgetId)
+						return widgetView;
+				} catch (Exception e) {
+				}
+			}
 
-            return null;
-        }
-    };
+			return null;
+		}
+	};
 
 	ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
-	// storage for cursor for each provider data Uri
+	// listview informations storage for each provider data Uri
 	class ScrollViewInfos {
-		Cursor cursor = null;
 		ListView lv = null;
 		int widgetId = -1;
+		ContentObserver obs;
+		Handler obsHandler;
+		WidgetListAdapter lvAdapter;
 	}
 
-	HashMap<String, ScrollViewInfos> mScrollViewCursorInfos = new HashMap<String, ScrollViewInfos>();
+	static HashMap<String, ScrollViewInfos> mScrollViewCursorInfos = new HashMap<String, ScrollViewInfos>();
 
-	// wjaxx. Just to know if this widget is scrollable
-	public synchronized boolean isWidgetScrollable(int widgetId)
-	{
-		for(ScrollViewInfos item: mScrollViewCursorInfos.values()){
-			if (item.widgetId ==  widgetId)
+	// Test if this widget is scrollable
+	public synchronized boolean isWidgetScrollable(int widgetId) {
+		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
+			if (item.widgetId == widgetId)
 				return true;
 		}
 		return false;
 	}
-	
+
 	class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			Log.i("ScrollViewProvider - Receiver", "" + intent);
+			Log.i("ScrollViewProvider - onReceive: ", "" + intent);
 
 			// Try to get the widget view
 			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
@@ -325,7 +311,7 @@ public abstract class WidgetSpace extends ViewGroup {
 			String error = "unknow action";
 			if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_START)) {
 				error = makeScrollable(context, intent, widgetView);
-				
+
 			} else if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_SELECT_ITEM)) {
 				error = setSelection(context, intent, widgetView);
 			} else if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_CLOSE)) {
@@ -359,56 +345,82 @@ public abstract class WidgetSpace extends ViewGroup {
 						widgetView.getAppWidgetInfo().provider.getPackageName(), Context.CONTEXT_IGNORE_SECURITY);
 
 				ListView lv = null;
-				WidgetCursorAdapter lvCursorAdapter = null;
 
 				final int aid = widgetView.getAppWidgetId();
 				final Activity a = getLauncherActivity();
 				if (a == null)
 					return null;
 
+				// inflate listview
+				final int listViewResId = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_LAYOUT_ID, -1);
+				if (listViewResId <= 0) {
+					// try to post the newly created listview to the widget
+					lv = postListView(widgetView, dummyViewId);
+					if (lv == null)
+						return "Cannot create the default list view.";
+				} else {
+					// TODO inflate it
+					LayoutInflater inflater = LayoutInflater.from(remoteContext);
+					View v = inflater.inflate(listViewResId, null);
+					if (v instanceof ListView) {
+						lv = (ListView) v;
+						if (!replaceView(widgetView, dummyViewId, lv))
+							return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
+					} else
+						return "Cannot inflate a list view from the passed layout resource id.";
+				}
+
 				// manage a query and cursor
 				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
-				int position = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_POSITION, -1);
-				ScrollViewInfos cursorInfos = mScrollViewCursorInfos.get(cursorDataUriString);
-				if (cursorInfos == null) {
+				ScrollViewInfos listViewInfos = mScrollViewCursorInfos.get(cursorDataUriString);
+				if (listViewInfos == null) {
 
-					final int listViewResId = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_LAYOUT_ID,
-							-1);
-					if (listViewResId <= 0) {
-						// try to post the newly created listview to the widget
-						lv = postListView(widgetView, dummyViewId);
-						if (lv == null)
-							return "Cannot create the default list view.";
-					} else {
-						// TODO inflate it
-						LayoutInflater inflater = LayoutInflater.from(remoteContext);
-						View v = inflater.inflate(listViewResId, null);
-						if (v instanceof ListView) {
-							lv = (ListView) v;
-							if (!replaceView(widgetView, dummyViewId, lv))
-								return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
-						} else
-							return "Cannot inflate a list view from the passed layout resource id.";
-					}
+					listViewInfos = new ScrollViewInfos();
 
-					cursorInfos = new ScrollViewInfos();
-					cursorInfos.cursor = WidgetCursorAdapter
-							.queryForNewContent(a, context.getContentResolver(), intent);
-					lvCursorAdapter = new WidgetCursorAdapter(a, remoteContext, cursorInfos.cursor, intent,
-							appWidgetProvider, aid, dummyViewId);
-					lv.setFocusableInTouchMode(false);
-					lv.setOnScrollListener(this);
-					lv.setAdapter(lvCursorAdapter);
+					final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
+							aid, dummyViewId);
 
-					if (!lvCursorAdapter.mItemChildrenClickable)
+					lv.setAdapter(lvAdapter);
+
+					// create listener for content Provider data modification
+					WidgetDataChangeListener widgetDataChangeListener = new WidgetDataChangeListener() {
+						@Override
+						public void onChange() {
+							lvAdapter.notifyToRegenerate();
+						}
+					};
+
+					// register contentProvider observer
+					listViewInfos.obs = new WidgetContentObserver(listViewInfos.obsHandler, widgetDataChangeListener);
+					Uri uriToObserver = Uri.parse(intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI));
+					context.getContentResolver().registerContentObserver(uriToObserver, true, listViewInfos.obs);
+
+					if (!lvAdapter.mItemChildrenClickable)
 						lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
 
-					cursorInfos.lv = lv;
-					cursorInfos.widgetId = aid;
-					mScrollViewCursorInfos.put(cursorDataUriString, cursorInfos);
+					listViewInfos.lvAdapter = lvAdapter;
 				} else {
-					lv = cursorInfos.lv;
+
+					final WidgetListAdapter lvAdapter = listViewInfos.lvAdapter;
+
+					lv.setAdapter(lvAdapter);
+
+					if (!lvAdapter.mItemChildrenClickable)
+						lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
+
 				}
+
+				// finish listview configuration
+				lv.setFocusableInTouchMode(false);
+				lv.setOnScrollListener(this);
+				
+				// store informations in static memory
+				listViewInfos.lv = lv;
+				listViewInfos.widgetId = aid;
+				mScrollViewCursorInfos.put(cursorDataUriString, listViewInfos);
+
+				// force listview position if asked
+				int position = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_POSITION, -1);
 				if (position >= 0)
 					lv.setSelection(position);
 
@@ -434,7 +446,7 @@ public abstract class WidgetSpace extends ViewGroup {
 				return e.getMessage();
 			}
 		}
-		
+
 		private synchronized String releaseScrollable(Context context, Intent intent, AppWidgetHostView widgetView) {
 
 			try {
@@ -444,8 +456,8 @@ public abstract class WidgetSpace extends ViewGroup {
 				ScrollViewInfos cursorInfos = mScrollViewCursorInfos.get(cursorDataUriString);
 				if (cursorInfos != null) {
 					cursorInfos.lv = null;
-					cursorInfos.cursor.close();
-					cursorInfos.cursor = null;
+					cursorInfos.obs = null;
+					cursorInfos.obsHandler = null;
 					mScrollViewCursorInfos.remove(cursorDataUriString);
 				}
 				return null;
@@ -614,35 +626,35 @@ public abstract class WidgetSpace extends ViewGroup {
 		}
 	}
 
-    /**
-     * 
-     * @author bo
-     * 
-     */
-    class AnimationException extends Exception {
+	/**
+	 * 
+	 * @author bo
+	 * 
+	 */
+	class AnimationException extends Exception {
 
-        public String mAction;
+		public String mAction;
 
-        AnimationException(String action, String msg) {
-            super(msg);
-            mAction = action;
+		AnimationException(String action, String msg) {
+			super(msg);
+			mAction = action;
 
-        }
-    }
+		}
+	}
 
-    class FrameAnimationException extends AnimationException {
-        public FrameAnimationException(String msg) {
-            super(LauncherIntent.Error.ERROR_FRAME_ANIMATION, msg);
-        }
+	class FrameAnimationException extends AnimationException {
+		public FrameAnimationException(String msg) {
+			super(LauncherIntent.Error.ERROR_FRAME_ANIMATION, msg);
+		}
 
-    }
+	}
 
-    class TweenAnimationException extends AnimationException {
+	class TweenAnimationException extends AnimationException {
 
-        public TweenAnimationException(String msg) {
-            super(LauncherIntent.Error.ERROR_TWEEN_ANIMATION, msg);
-        }
+		public TweenAnimationException(String msg) {
+			super(LauncherIntent.Error.ERROR_TWEEN_ANIMATION, msg);
+		}
 
-    }
+	}
 
 }
