@@ -1,7 +1,9 @@
 package mobi.intuitit.android.widget;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import mobi.intuitit.android.content.LauncherIntent;
-import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -10,26 +12,29 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
-import android.widget.CursorAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
  * 
- * @author Bo & Koxx
+ * @author Koxx
  * 
  */
-public class WidgetCursorAdapter extends CursorAdapter {
+public class WidgetListAdapter extends BaseAdapter {
 
-	static final String LOG_TAG = "LauncherPP_WCA";
+	static final String LOG_TAG = "LauncherPP_WLA";
 
 	static final int IMPOSSIBLE_INDEX = -100;
+
+	private static final boolean LOGD = true;
 
 	final LayoutInflater mInflater;
 
@@ -44,6 +49,21 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 	private ContentResolver mContentResolver;
 	private Intent mIntent;
+
+	class RowElement {
+		// item data
+		public String text;
+		public byte[] imageBlobData;
+		public String imageUri;
+		public int imageResId;
+		public String tag;
+	}
+
+	class RowElementsList {
+		HashMap<Integer, RowElement> singleRowElementsList = new HashMap<Integer, RowElement>();
+	}
+
+	public ArrayList<RowElementsList> rowsElementsList = new ArrayList<RowElementsList>();
 
 	class ItemMapping {
 		int type;
@@ -86,7 +106,19 @@ public class WidgetCursorAdapter extends CursorAdapter {
 	final int mItemActionUriIndex;
 	ComponentName mAppWidgetProvider;
 
-	private Activity mActivity;
+	// Need handler for callbacks to the UI thread
+	final Handler mHandler = new Handler();
+
+	// Create runnable for posting
+	final Runnable mUpdateResults = new Runnable() {
+		public void run() {
+			updateResultsInUi();
+		}
+	};
+
+	private void updateResultsInUi() {
+		notifyDataSetInvalidated();
+	}
 
 	/**
 	 * 
@@ -99,9 +131,9 @@ public class WidgetCursorAdapter extends CursorAdapter {
 	 * @param appWidgetId
 	 * @param listViewId
 	 */
-	public WidgetCursorAdapter(Activity a, Context context, Cursor c, Intent intent, ComponentName provider,
-			int appWidgetId, int listViewId) throws IllegalArgumentException {
-		super(context, c);
+	public WidgetListAdapter(Context context, Intent intent, ComponentName provider, int appWidgetId, int listViewId)
+			throws IllegalArgumentException {
+		super();
 
 		mAppWidgetId = appWidgetId;
 		mListViewId = listViewId;
@@ -109,7 +141,6 @@ public class WidgetCursorAdapter extends CursorAdapter {
 		mIntent = intent;
 		mAppWidgetProvider = provider;
 		mInflater = LayoutInflater.from(context);
-		mActivity = a;
 
 		// verify is contentProvider requery is allowed
 		mAllowRequery = intent.getBooleanExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_PROVIDER_ALLOW_REQUERY, false);
@@ -124,10 +155,29 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 		mItemActionUriIndex = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_ACTION_VIEW_URI_INDEX, -1);
 
-		// Generate
+		// Generate item mapping
 		generateItemMapping(intent);
 
+		// Generate data cache from content provider
+		if (mRegenerateCacheThread == null)
+			mRegenerateCacheThread = new RegenerateCacheThread();
+		mRegenerateCacheThread.run();
+
 	}
+
+	class RegenerateCacheThread implements Runnable {
+
+		public void run() {
+			if (LOGD)
+				Log.d(LOG_TAG, "RegenerateCacheThread start");
+			generateCache();
+			mHandler.post(mUpdateResults);
+			if (LOGD)
+				Log.d(LOG_TAG, "RegenerateCacheThread end");
+		}
+	}
+
+	RegenerateCacheThread mRegenerateCacheThread = null;
 
 	/**
 	 * Collect arrays and put them together
@@ -172,8 +222,81 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 	}
 
-	@Override
-	public void bindView(View view, Context context, Cursor cursor) {
+	private void generateCache() {
+
+		Log.d(LOG_TAG, "regenerate cache");
+
+		if (mItemMappings == null)
+			return;
+		final int size = mItemMappings.length;
+
+		Cursor cursor = mContentResolver.query(Uri.parse(mIntent
+				.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)), mIntent
+				.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION), mIntent
+				.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION), mIntent
+				.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS), mIntent
+				.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
+
+		rowsElementsList.clear();
+
+		while ((cursor != null) && (cursor.moveToNext())) {
+
+			RowElementsList singleRowElem = new RowElementsList();
+
+			ItemMapping itemMapping;
+			try {
+				// bind children views
+				for (int i = size - 1; i >= 0; i--) {
+
+					RowElement re = new RowElement();
+
+					itemMapping = mItemMappings[i];
+
+					switch (itemMapping.type) {
+					case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
+					case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
+						re.text = cursor.getString(itemMapping.index);
+						break;
+					case LauncherIntent.Extra.Scroll.Types.IMAGEBLOB:
+						re.imageBlobData = cursor.getBlob(itemMapping.index);
+						break;
+					case LauncherIntent.Extra.Scroll.Types.IMAGEURI:
+						re.imageUri = cursor.getString(itemMapping.index);
+						break;
+					case LauncherIntent.Extra.Scroll.Types.IMAGERESOURCE:
+						re.imageResId = cursor.getInt(itemMapping.index);
+						break;
+					}
+
+					// Prepare tag
+					if (mItemChildrenClickable && itemMapping.clickable) {
+						if (mItemActionUriIndex >= 0)
+							re.tag = cursor.getString(mItemActionUriIndex);
+						else
+							re.tag = Integer.toString(cursor.getPosition());
+					} else {
+						if (mItemActionUriIndex >= 0) {
+							re.tag = cursor.getString(mItemActionUriIndex);
+						}
+					}
+
+					singleRowElem.singleRowElementsList.put(itemMapping.layoutId, re);
+
+				}
+
+				rowsElementsList.add(singleRowElem);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (cursor != null)
+			cursor.close();
+
+	}
+
+	public void bindView(View view, Context context, int itemPosition) {
 		if (mItemMappings == null)
 			return;
 		final int size = mItemMappings.length;
@@ -188,22 +311,27 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 				child = view.findViewById(itemMapping.layoutId);
 
+				RowElement rowElement = rowsElementsList.get(itemPosition).singleRowElementsList
+						.get(itemMapping.layoutId);
+
 				switch (itemMapping.type) {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
 					if (!(child instanceof TextView))
 						break;
-					String text = cursor.getString(itemMapping.index);
+					// String text = cursor.getString(itemMapping.index);
+					String text = rowElement.text;
 					if (text != null)
-						((TextView) child).setText(cursor.getString(itemMapping.index));
+						((TextView) child).setText(text);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
 					if (!(child instanceof TextView))
 						break;
-					String textHtml = cursor.getString(itemMapping.index);
+					// String textHtml = cursor.getString(itemMapping.index);
+					String textHtml = rowElement.text;
 					if (textHtml != null)
-						((TextView) child).setText(Html.fromHtml(cursor.getString(itemMapping.index)));
+						((TextView) child).setText(Html.fromHtml(textHtml));
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
@@ -211,7 +339,8 @@ public class WidgetCursorAdapter extends CursorAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					byte[] data = cursor.getBlob(itemMapping.index);
+					// byte[] data = cursor.getBlob(itemMapping.index);
+					byte[] data = rowElement.imageBlobData;
 					if (data != null)
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
 					else if (itemMapping.defaultResource > 0)
@@ -223,7 +352,8 @@ public class WidgetCursorAdapter extends CursorAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					String uriStr = cursor.getString(itemMapping.index);
+					// String uriStr = cursor.getString(itemMapping.index);
+					String uriStr = rowElement.imageUri;
 					if ((uriStr != null) && (!uriStr.equals("")))
 						iv.setImageURI(Uri.parse(uriStr));
 					else
@@ -233,7 +363,8 @@ public class WidgetCursorAdapter extends CursorAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					int res = cursor.getInt(itemMapping.index);
+					// int res = cursor.getInt(itemMapping.index);
+					int res = rowElement.imageResId;
 					if (res > 0)
 						iv.setImageResource(res);
 					else if (itemMapping.defaultResource > 0)
@@ -246,14 +377,11 @@ public class WidgetCursorAdapter extends CursorAdapter {
 				// Prepare tag
 				view.setTag(null);
 				if (mItemChildrenClickable && itemMapping.clickable) {
-					if (mItemActionUriIndex >= 0)
-						child.setTag(cursor.getString(mItemActionUriIndex));
-					else
-						child.setTag(Integer.toString(cursor.getPosition()));
+					child.setTag(rowElement.tag);
 					child.setOnClickListener(new ItemViewClickListener());
 				} else {
 					if (mItemActionUriIndex >= 0) {
-						view.setTag(cursor.getString(mItemActionUriIndex));
+						view.setTag(rowElement.tag);
 					}
 				}
 			}
@@ -264,7 +392,6 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 	}
 
-	@Override
 	public View newView(Context context, Cursor c, ViewGroup parent) {
 		return mInflater.inflate(mItemLayoutId, parent, false);
 	}
@@ -288,52 +415,41 @@ public class WidgetCursorAdapter extends CursorAdapter {
 
 	}
 
-	public static Cursor queryForNewContent(Activity a, ContentResolver cr, Intent intent) {
-
-		Cursor cursor = null;
-		if ((intent != null) && (a != null)) {
-			cursor = a.managedQuery(Uri.parse(intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)),
-					intent.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION), intent
-							.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION), intent
-							.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS), intent
-							.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
-
-			if (cursor != null)
-				cursor.setNotificationUri(cr, Uri.parse(intent
-						.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)));
-			else
-				Log.d(LOG_TAG, "cursor null");
-
-		} else {
-			Log.d(LOG_TAG, "intent or activity null");
-		}
-
-		return cursor;
+	@Override
+	public int getCount() {
+		return rowsElementsList.size();
 	}
 
-	// @Override
-	// protected void onContentChanged() {
-	//
-	// Log.i(LOG_TAG, "onContentChanged");
-	//
-	// if (getCursor() != null && !getCursor().isClosed()) {
-	// if (mAllowRequery) {
-	// getCursor().requery();
-	// } else {
-	// Cursor newCursor = queryForNewContent(mActivity, mContentResolver,
-	// mIntent);
-	// if (newCursor != null) {
-	// Log.i(LOG_TAG, "newCursor = " + newCursor + " / count = " +
-	// newCursor.getCount());
-	// changeCursor(newCursor);
-	// }
-	// }
-	//
-	// notifyDataSetChanged();
-	//
-	// } else {
-	// Log.v(LOG_TAG, "cursor closed or null");
-	// }
-	// }
+	@Override
+	public Object getItem(int position) {
+		return position;
+	}
 
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+
+		if (convertView == null) {
+			convertView = mInflater.inflate(mItemLayoutId, null);
+		}
+
+		if (position < getCount())
+			bindView(convertView, convertView.getContext(), position);
+
+		return convertView;
+
+	}
+
+	public void notifyToRegenerate() {
+		if (LOGD)
+			Log.d(LOG_TAG, "notifyToRegenerate widgetId = " + mAppWidgetId);
+
+		if (mRegenerateCacheThread == null)
+			mRegenerateCacheThread = new RegenerateCacheThread();
+		mRegenerateCacheThread.run();
+	}
 }
