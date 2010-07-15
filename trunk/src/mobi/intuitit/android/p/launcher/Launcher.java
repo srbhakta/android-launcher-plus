@@ -218,7 +218,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         mAppWidgetHost = new LauncherAppWidgetHost(this, APPWIDGET_HOST_ID);
         mAppWidgetHost.startListening();
-
+        
         if (PROFILE_STARTUP) {
             android.os.Debug.startMethodTracing("/sdcard/launcher");
         }
@@ -228,6 +228,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         setContentView(R.layout.launcher);
         setupViews();
+
+        mAppWidgetHost.setWorkspace(mWorkspace);
 
         registerIntentReceivers();
         registerContentObservers();
@@ -1041,6 +1043,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         mAllAppsGrid.setAdapter(null);
         sModel.unbind();
         sModel.abortLoaders();
+        mWorkspace.unbindWidgetScrollableViews();
 
         getContentResolver().unregisterContentObserver(mObserver);
         getContentResolver().unregisterContentObserver(mWidgetObserver);

@@ -287,6 +287,15 @@ public abstract class WidgetSpace extends ViewGroup {
 		return false;
 	}
 
+	// Unbind ressource of scrollable widget
+	public synchronized boolean unbindWidgetScrollable() {
+		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
+			item.lv.setAdapter(null);
+			item.lvAdapter = null;
+		}
+		return false;
+	}
+
 	class ScrollViewProvider extends BroadcastReceiver implements OnScrollListener {
 
 		@Override
@@ -370,17 +379,19 @@ public abstract class WidgetSpace extends ViewGroup {
 						return "Cannot inflate a list view from the passed layout resource id.";
 				}
 
-				// manage a query and cursor
+
+				final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
+						aid, dummyViewId);
+
+				lv.setAdapter(lvAdapter);
+
 				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
 				ScrollViewInfos listViewInfos = mScrollViewCursorInfos.get(cursorDataUriString);
+
+				// new widget, initialize observer
 				if (listViewInfos == null) {
 
 					listViewInfos = new ScrollViewInfos();
-
-					final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
-							aid, dummyViewId);
-
-					lv.setAdapter(lvAdapter);
 
 					// create listener for content Provider data modification
 					WidgetDataChangeListener widgetDataChangeListener = new WidgetDataChangeListener() {
@@ -395,28 +406,18 @@ public abstract class WidgetSpace extends ViewGroup {
 					Uri uriToObserver = Uri.parse(intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI));
 					context.getContentResolver().registerContentObserver(uriToObserver, true, listViewInfos.obs);
 
-					if (!lvAdapter.mItemChildrenClickable)
-						lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
-
-					listViewInfos.lvAdapter = lvAdapter;
-				} else {
-
-					final WidgetListAdapter lvAdapter = listViewInfos.lvAdapter;
-
-					lv.setAdapter(lvAdapter);
-
-					if (!lvAdapter.mItemChildrenClickable)
-						lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
-
 				}
 
 				// finish listview configuration
+				if (!lvAdapter.mItemChildrenClickable)
+					lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
 				lv.setFocusableInTouchMode(false);
 				lv.setOnScrollListener(this);
 				
 				// store informations in static memory
-				listViewInfos.lv = lv;
 				listViewInfos.widgetId = aid;
+				listViewInfos.lv = lv;
+				listViewInfos.lvAdapter = lvAdapter;
 				mScrollViewCursorInfos.put(cursorDataUriString, listViewInfos);
 
 				// force listview position if asked
