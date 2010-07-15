@@ -344,7 +344,7 @@ public class WidgetListAdapter extends BaseAdapter {
 					byte[] data = rowElement.imageBlobData;
 					if (data != null) {
 						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
-						if (lastDrawable != null)
+						if ((lastDrawable != null) && (!lastDrawable.getBitmap().isRecycled()))
 							lastDrawable.getBitmap().recycle();
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
 					} else if (itemMapping.defaultResource > 0)
@@ -361,10 +361,12 @@ public class WidgetListAdapter extends BaseAdapter {
 					if ((uriStr != null) && (!uriStr.equals(""))) {
 						// recycle old bitmap
 						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
-						if (lastDrawable != null)
+						if ((lastDrawable != null) && (!lastDrawable.getBitmap().isRecycled()))
 							lastDrawable.getBitmap().recycle();
 						// assign new bitmap
-						iv.setImageBitmap(BitmapFactory.decodeFile(uriStr));
+//						iv.setImageBitmap(BitmapFactory.decodeFile(uriStr));
+						iv.setImageDrawable(null);
+						iv.setImageURI(Uri.parse(uriStr));
 					} else
 						iv.setImageDrawable(null);
 					break;
@@ -375,6 +377,9 @@ public class WidgetListAdapter extends BaseAdapter {
 					// int res = cursor.getInt(itemMapping.index);
 					int res = rowElement.imageResId;
 					if (res > 0) {
+//						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
+//						if (lastDrawable != null)
+//							lastDrawable.getBitmap().recycle();
 						iv.setImageResource(res);
 					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);

@@ -23,6 +23,7 @@ import mobi.intuitit.android.widget.WidgetCellLayout;
 import mobi.intuitit.android.widget.WidgetSpace;
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -1351,4 +1352,47 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
     public Activity getLauncherActivity() {
         return mLauncher;
     }
+
+    public boolean isWidgetAtLocationScrollable(int x, int y) {
+		// will return true if widget at this position is scrollable.
+    	// Get current screen from the whole desktop
+    	CellLayout currentScreen = (CellLayout) getChildAt(mCurrentScreen);
+    	int[] cell_xy = new int[2];
+    	// Get the cell where the user started the touch event
+    	currentScreen.pointToCellExact(x, y, cell_xy);
+        int count = currentScreen.getChildCount();
+        
+        Log.d("Workspace", "pointToCellExact : x = " + x + " / y = " +y + " / cellX = " + cell_xy[0] + " / cellY = " + cell_xy[1]);
+        
+        // Iterate to find which widget is located at that cell
+        // Find widget backwards from a cell does not work with (View)currentScreen.getChildAt(cell_xy[0]*currentScreen.getCountX etc etc); As the widget is positioned at the very first cell of the widgetspace
+        for (int i = 0; i < count; i++) {
+            View child = (View)currentScreen.getChildAt(i);
+            if ( child !=null)
+            {
+            	// Get Layount graphical info about this widget
+	            CellLayout.LayoutParams lp = (CellLayout.LayoutParams) child.getLayoutParams();
+	            // Calculate Cell Margins
+	            int left_cellmargin = lp.cellX;
+	            int rigth_cellmargin = lp.cellX+lp.cellHSpan;
+	            int top_cellmargin = lp.cellY;
+	            int botton_cellmargin = lp.cellY + lp.cellVSpan;
+	            // See if the cell where we touched is inside the Layout of the widget beeing analized
+	            if (cell_xy[0] >= left_cellmargin && cell_xy[0] < rigth_cellmargin && cell_xy[1] >= top_cellmargin && cell_xy[1] < botton_cellmargin)  {
+	            	try {
+		            	// Get Widget ID
+		            	int id = ((AppWidgetHostView)child).getAppWidgetId();
+		            	// Ask to WidgetSpace if the Widget identified itself when created as 'Scrollable'
+		            	return isWidgetScrollable(id);
+	            	} catch (Exception e)
+	            	{}
+	            }
+           }
+        }
+        return false;
+	}
+
+	public void unbindWidgetScrollableViews() {
+		unbindWidgetScrollable();
+	}
 }

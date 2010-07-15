@@ -27,6 +27,9 @@ import android.content.Context;
  * always pick up and move widgets.
  */
 public class LauncherAppWidgetHost extends AppWidgetHost {
+	
+	Workspace mWorkspace;
+	
     public LauncherAppWidgetHost(Context context, int hostId) {
         super(context, hostId);
     }
@@ -34,6 +37,12 @@ public class LauncherAppWidgetHost extends AppWidgetHost {
     @Override
     protected AppWidgetHostView onCreateView(Context context, int appWidgetId,
             AppWidgetProviderInfo appWidget) {
-        return new LauncherAppWidgetHostView(context);
+    	LauncherAppWidgetHostView view = new LauncherAppWidgetHostView(context);
+    	view.setWorkspace(mWorkspace);
+        return view;
     }
+
+	public void setWorkspace(Workspace workspace) {
+		mWorkspace = workspace;
+	}
 }
