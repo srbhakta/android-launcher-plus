@@ -485,10 +485,10 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			public void onItemClick(AdapterView<?> arg0, View view, int pos, long arg3) {
 				try {
-					
-	                ViewHolder holder = (ViewHolder) view.getTag();
-	                Object tag = holder.lvClickItemTag;
-	                
+
+					ViewHolder holder = (ViewHolder) view.getTag();
+					Object tag = holder.lvClickItemTag;
+
 					if (tag != null && tag instanceof String) {
 						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) tag));
 						getContext().startActivity(intent);
@@ -498,7 +498,7 @@ public abstract class WidgetSpace extends ViewGroup {
 						intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
 						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_ID, mListViewId);
 						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_POS, pos);
-						
+
 						Rect srcRect = new Rect();
 						final int[] location = new int[2];
 						view.getLocationOnScreen(location);
@@ -507,7 +507,7 @@ public abstract class WidgetSpace extends ViewGroup {
 						srcRect.right = srcRect.left + view.getWidth();
 						srcRect.bottom = srcRect.top + view.getHeight();
 						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_SOURCE_BOUNDS, srcRect);
-						
+
 						getContext().sendBroadcast(intent);
 					}
 				} catch (Exception e) {
