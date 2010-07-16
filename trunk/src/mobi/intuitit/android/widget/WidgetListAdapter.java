@@ -10,9 +10,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.Html;
@@ -39,8 +40,6 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private static final boolean LOGD = true;
 
-	private static final boolean RECYCLE = true;
-
 	private static final int NB_MAX_ITEM_VIEWS_PER_ROW = 10;
 
 	private static final int NB_MAX_VIEWS_CREATED = 10;
@@ -58,6 +57,8 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private ContentResolver mContentResolver;
 	private Intent mIntent;
+
+	static ListViewImageManager mImageManager = new ListViewImageManager();
 
 	class RowElement {
 		// item data
@@ -346,15 +347,6 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					byte[] data = rowElement.imageBlobData;
 
-					// if (RECYCLE) {
-					// // recycle old bitmap
-					// BitmapDrawable lastDrawableImageBlob = (BitmapDrawable)
-					// iv.getDrawable();
-					// if ((lastDrawableImageBlob != null) &&
-					// (!lastDrawableImageBlob.getBitmap().isRecycled()))
-					// lastDrawableImageBlob.getBitmap().recycle();
-					// }
-
 					if (data != null) {
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
 					} else if (itemMapping.defaultResource > 0)
@@ -366,19 +358,11 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					// String uriStr = cursor.getString(itemMapping.index);
 					String uriStr = rowElement.imageUri;
 
 					if ((uriStr != null) && (!uriStr.equals(""))) {
-						if (RECYCLE) {
-							// recycle old bitmap
-							BitmapDrawable lastDrawableImageUri = (BitmapDrawable) iv.getDrawable();
-							if ((lastDrawableImageUri != null) && (!lastDrawableImageUri.getBitmap().isRecycled()))
-								lastDrawableImageUri.getBitmap().recycle();
-						}
-						// assign new bitmap
-						iv.setImageDrawable(null);
-						iv.setImageURI(Uri.parse(uriStr));
+						Drawable d = mImageManager.getImageFromUri(context, uriStr);
+						iv.setImageDrawable(d);
 					} else
 						iv.setImageDrawable(null);
 					break;
@@ -386,24 +370,17 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					// int res = cursor.getInt(itemMapping.index);
 					int res = rowElement.imageResId;
-
-					// if (RECYCLE) {
-					// // recycle old bitmap
-					// BitmapDrawable lastDrawableImageRes = (BitmapDrawable)
-					// iv.getDrawable();
-					// if ((lastDrawableImageRes != null) &&
-					// (!lastDrawableImageRes.getBitmap().isRecycled()))
-					// lastDrawableImageRes.getBitmap().recycle();
-					// }
 
 					if (res > 0) {
 						// assign new bitmap
-						iv.setImageResource(res);
-					} else if (itemMapping.defaultResource > 0)
-						iv.setImageResource(itemMapping.defaultResource);
-					else
+						Bitmap bitmap = mImageManager.getImageFromId(context, res);
+						iv.setImageBitmap(bitmap);
+						// iv.setImageResource(res);
+					} else if (itemMapping.defaultResource > 0) {
+						Bitmap bitmap = mImageManager.getImageFromId(context, itemMapping.defaultResource);
+						iv.setImageBitmap(bitmap);
+					} else
 						iv.setImageDrawable(null);
 					break;
 				}
@@ -422,16 +399,19 @@ public class WidgetListAdapter extends BaseAdapter {
 			}
 
 		} catch (OutOfMemoryError e) {
-			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() + " Kb");
+			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
+
+			System.gc();
 
 			e.printStackTrace();
 
 		} catch (Exception e) {
-			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() + " Kb");
+			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
 			e.printStackTrace();
 		}
 
-		Log.d(LOG_TAG, "freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
+//		if (LOGD)
+//			Log.d(LOG_TAG, "freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
 
 		if (Runtime.getRuntime().freeMemory() < 500000) {
 			if (LOGD)
@@ -530,4 +510,13 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		mHandler.post(mUpdateResults);
 	}
-}
+} 
+
+// if (RECYCLE) {
+// // recycle old bitmap
+// BitmapDrawable lastDrawableImageRes = (BitmapDrawable)
+// iv.getDrawable();
+// if ((lastDrawableImageRes != null) &&
+// (!lastDrawableImageRes.getBitmap().isRecycled()))
+// lastDrawableImageRes.getBitmap().recycle();
+// }
