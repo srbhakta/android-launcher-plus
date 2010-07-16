@@ -156,6 +156,12 @@ public class LauncherIntent extends Intent {
              *   this data is sent with the ACTION_ITEM_CLICK and ACTION_VIEW_CLICK
              */
             public static final String EXTRA_ITEM_POS = PNAME + "EXTRA_ITEM_POS";
+            			
+            /**
+             * The position of an clicked item in the on the screen
+             *   this data is sent with the ACTION_VIEW_CLICK
+             */
+			public static final String EXTRA_SOURCE_BOUNDS = PNAME + "EXTRA_ITEM_SOURCE_BOUNDS";
 
             /**
              * The uri for onItemClickListener
