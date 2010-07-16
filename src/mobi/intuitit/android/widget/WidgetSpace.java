@@ -291,7 +291,6 @@ public abstract class WidgetSpace extends ViewGroup {
 	public synchronized boolean unbindWidgetScrollable() {
 		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
 			item.lv.setAdapter(null);
-			item.lvAdapter = null;
 		}
 		return false;
 	}
@@ -379,12 +378,6 @@ public abstract class WidgetSpace extends ViewGroup {
 						return "Cannot inflate a list view from the passed layout resource id.";
 				}
 
-
-				final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
-						aid, dummyViewId);
-
-				lv.setAdapter(lvAdapter);
-
 				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
 				ScrollViewInfos listViewInfos = mScrollViewCursorInfos.get(cursorDataUriString);
 
@@ -392,6 +385,9 @@ public abstract class WidgetSpace extends ViewGroup {
 				if (listViewInfos == null) {
 
 					listViewInfos = new ScrollViewInfos();
+
+					final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
+							aid, dummyViewId);
 
 					// create listener for content Provider data modification
 					WidgetDataChangeListener widgetDataChangeListener = new WidgetDataChangeListener() {
@@ -406,18 +402,23 @@ public abstract class WidgetSpace extends ViewGroup {
 					Uri uriToObserver = Uri.parse(intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI));
 					context.getContentResolver().registerContentObserver(uriToObserver, true, listViewInfos.obs);
 
+					// store new adapter
+					listViewInfos.lvAdapter = lvAdapter;
+
 				}
 
+				lv.setAdapter(listViewInfos.lvAdapter);
+
 				// finish listview configuration
-				if (!lvAdapter.mItemChildrenClickable)
+				if (!listViewInfos.lvAdapter.mItemChildrenClickable)
 					lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
 				lv.setFocusableInTouchMode(false);
 				lv.setOnScrollListener(this);
-				
+
 				// store informations in static memory
 				listViewInfos.widgetId = aid;
 				listViewInfos.lv = lv;
-				listViewInfos.lvAdapter = lvAdapter;
+				// listViewInfos.lvAdapter = lvAdapter;
 				mScrollViewCursorInfos.put(cursorDataUriString, listViewInfos);
 
 				// force listview position if asked
