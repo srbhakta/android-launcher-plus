@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -455,6 +456,16 @@ public class WidgetListAdapter extends BaseAdapter {
 				intent.putExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, v.getId());
 				intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_ID, mListViewId);
 				intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_POS, pos);
+								
+				Rect srcRect = new Rect();
+				final int[] location = new int[2];
+				v.getLocationOnScreen(location);
+				srcRect.left = location[0];
+				srcRect.top = location[1];
+				srcRect.right = srcRect.left + v.getWidth();
+				srcRect.bottom = srcRect.top + v.getHeight();
+				intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_SOURCE_BOUNDS, srcRect);
+
 				v.getContext().sendBroadcast(intent);
 			} catch (Exception e) {
 				e.printStackTrace();

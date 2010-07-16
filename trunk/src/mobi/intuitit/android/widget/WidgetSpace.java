@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
+import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -497,6 +498,16 @@ public abstract class WidgetSpace extends ViewGroup {
 						intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
 						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_ID, mListViewId);
 						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_POS, pos);
+						
+						Rect srcRect = new Rect();
+						final int[] location = new int[2];
+						view.getLocationOnScreen(location);
+						srcRect.left = location[0];
+						srcRect.top = location[1];
+						srcRect.right = srcRect.left + view.getWidth();
+						srcRect.bottom = srcRect.top + view.getHeight();
+						intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_SOURCE_BOUNDS, srcRect);
+						
 						getContext().sendBroadcast(intent);
 					}
 				} catch (Exception e) {
