@@ -3,6 +3,7 @@ package mobi.intuitit.android.widget;
 import java.util.HashMap;
 
 import mobi.intuitit.android.content.LauncherIntent;
+import mobi.intuitit.android.widget.WidgetListAdapter.ViewHolder;
 import android.app.Activity;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
@@ -483,7 +484,10 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			public void onItemClick(AdapterView<?> arg0, View view, int pos, long arg3) {
 				try {
-					Object tag = view.getTag();
+					
+	                ViewHolder holder = (ViewHolder) view.getTag();
+	                Object tag = holder.lvClickItemTag;
+	                
 					if (tag != null && tag instanceof String) {
 						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) tag));
 						getContext().startActivity(intent);
