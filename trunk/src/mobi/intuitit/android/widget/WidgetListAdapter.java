@@ -40,6 +40,10 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private static final boolean RECYCLE = true;
 
+	private static final int NB_MAX_ITEM_VIEWS_PER_ROW = 10;
+
+	private static final int NB_MAX_VIEWS_CREATED = 10;
+
 	final LayoutInflater mInflater;
 
 	final int mItemLayoutId;
@@ -171,7 +175,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		// Generate data cache from content provider
 		mHandler.post(mUpdateResults);
-		
+
 	}
 
 	/**
@@ -293,7 +297,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	}
 
-	public void bindView(View view, Context context, int itemPosition) {
+	public void bindView(ViewHolder holder, View view, Context context, int itemPosition) {
 		if (mItemMappings == null)
 			return;
 		final int size = mItemMappings.length;
@@ -307,10 +311,14 @@ public class WidgetListAdapter extends BaseAdapter {
 			for (int i = size - 1; i >= 0; i--) {
 				itemMapping = mItemMappings[i];
 
-				child = view.findViewById(itemMapping.layoutId);
+				if ((holder.views[i] != null)) {
+					child = holder.views[i];
+				} else {
+					child = view.findViewById(itemMapping.layoutId);
+					holder.views[i] = child;
+				}
 
-				rowElement = rowsElementsList.get(itemPosition).singleRowElementsList
-						.get(itemMapping.layoutId);
+				rowElement = rowsElementsList.get(itemPosition).singleRowElementsList.get(itemMapping.layoutId);
 
 				switch (itemMapping.type) {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
@@ -337,12 +345,14 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					byte[] data = rowElement.imageBlobData;
 
-//					if (RECYCLE) {
-//						// recycle old bitmap
-//						BitmapDrawable lastDrawableImageBlob = (BitmapDrawable) iv.getDrawable();
-//						if ((lastDrawableImageBlob != null) && (!lastDrawableImageBlob.getBitmap().isRecycled()))
-//							lastDrawableImageBlob.getBitmap().recycle();
-//					}
+					// if (RECYCLE) {
+					// // recycle old bitmap
+					// BitmapDrawable lastDrawableImageBlob = (BitmapDrawable)
+					// iv.getDrawable();
+					// if ((lastDrawableImageBlob != null) &&
+					// (!lastDrawableImageBlob.getBitmap().isRecycled()))
+					// lastDrawableImageBlob.getBitmap().recycle();
+					// }
 
 					if (data != null) {
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
@@ -378,12 +388,14 @@ public class WidgetListAdapter extends BaseAdapter {
 					// int res = cursor.getInt(itemMapping.index);
 					int res = rowElement.imageResId;
 
-//					if (RECYCLE) {
-//						// recycle old bitmap
-//						BitmapDrawable lastDrawableImageRes = (BitmapDrawable) iv.getDrawable();
-//						if ((lastDrawableImageRes != null) && (!lastDrawableImageRes.getBitmap().isRecycled()))
-//							lastDrawableImageRes.getBitmap().recycle();
-//					}
+					// if (RECYCLE) {
+					// // recycle old bitmap
+					// BitmapDrawable lastDrawableImageRes = (BitmapDrawable)
+					// iv.getDrawable();
+					// if ((lastDrawableImageRes != null) &&
+					// (!lastDrawableImageRes.getBitmap().isRecycled()))
+					// lastDrawableImageRes.getBitmap().recycle();
+					// }
 
 					if (res > 0) {
 						// assign new bitmap
@@ -396,15 +408,16 @@ public class WidgetListAdapter extends BaseAdapter {
 				}
 
 				// Prepare tag
-				view.setTag(null);
+				holder.lvClickItemTag = null;
 				if (mItemChildrenClickable && itemMapping.clickable) {
 					child.setTag(rowElement.tag);
 					child.setOnClickListener(new ItemViewClickListener());
 				} else {
 					if (mItemActionUriIndex >= 0) {
-						view.setTag(rowElement.tag);
+						holder.lvClickItemTag = rowElement.tag;
 					}
 				}
+
 			}
 
 		} catch (OutOfMemoryError e) {
@@ -422,7 +435,7 @@ public class WidgetListAdapter extends BaseAdapter {
 		if (Runtime.getRuntime().freeMemory() < 500000) {
 			if (LOGD)
 				Log.d(LOG_TAG, "force gargabe collecting below 500kb");
-				
+
 			System.gc();
 		}
 	}
@@ -451,6 +464,16 @@ public class WidgetListAdapter extends BaseAdapter {
 	}
 
 	@Override
+	public int getViewTypeCount() {
+		return NB_MAX_VIEWS_CREATED;
+	}
+
+	@Override
+	public int getItemViewType(int position) {
+		return 0;
+	}
+
+	@Override
 	public int getCount() {
 		return rowsElementsList.size();
 	}
@@ -468,15 +491,26 @@ public class WidgetListAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 
+		ViewHolder holder;
+
 		if (convertView == null) {
 			convertView = mInflater.inflate(mItemLayoutId, null);
+			holder = new ViewHolder();
+			convertView.setTag(holder);
+		} else {
+			holder = (ViewHolder) convertView.getTag();
 		}
 
 		if (position < getCount())
-			bindView(convertView, convertView.getContext(), position);
+			bindView(holder, convertView, convertView.getContext(), position);
 
 		return convertView;
 
+	}
+
+	public static class ViewHolder {
+		public View views[] = new View[NB_MAX_ITEM_VIEWS_PER_ROW];
+		public Object lvClickItemTag = null;
 	}
 
 	public void notifyToRegenerate() {
