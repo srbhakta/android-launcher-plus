@@ -15,6 +15,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +38,8 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private static final boolean LOGD = true;
 
+	private static final boolean RECYCLE = true;
+
 	final LayoutInflater mInflater;
 
 	final int mItemLayoutId;
@@ -54,6 +57,7 @@ public class WidgetListAdapter extends BaseAdapter {
 	class RowElement {
 		// item data
 		public String text;
+		public Spanned spannedText;
 		public byte[] imageBlobData;
 		public String imageUri;
 		public int imageResId;
@@ -118,7 +122,13 @@ public class WidgetListAdapter extends BaseAdapter {
 	};
 
 	private void updateResultsInUi() {
+		if (LOGD)
+			Log.d(LOG_TAG, "RegenerateCacheThread start");
+		generateCache();
+		System.gc();
 		notifyDataSetInvalidated();
+		if (LOGD)
+			Log.d(LOG_TAG, "RegenerateCacheThread end");
 	}
 
 	/**
@@ -160,25 +170,9 @@ public class WidgetListAdapter extends BaseAdapter {
 		generateItemMapping(intent);
 
 		// Generate data cache from content provider
-		if (mRegenerateCacheThread == null)
-			mRegenerateCacheThread = new RegenerateCacheThread();
-		mRegenerateCacheThread.run();
-
+		mHandler.post(mUpdateResults);
+		
 	}
-
-	class RegenerateCacheThread implements Runnable {
-
-		public void run() {
-			if (LOGD)
-				Log.d(LOG_TAG, "RegenerateCacheThread start");
-			generateCache();
-			mHandler.post(mUpdateResults);
-			if (LOGD)
-				Log.d(LOG_TAG, "RegenerateCacheThread end");
-		}
-	}
-
-	RegenerateCacheThread mRegenerateCacheThread = null;
 
 	/**
 	 * Collect arrays and put them together
@@ -255,8 +249,10 @@ public class WidgetListAdapter extends BaseAdapter {
 
 					switch (itemMapping.type) {
 					case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
-					case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
 						re.text = cursor.getString(itemMapping.index);
+						break;
+					case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
+						re.spannedText = Html.fromHtml(cursor.getString(itemMapping.index));
 						break;
 					case LauncherIntent.Extra.Scroll.Types.IMAGEBLOB:
 						re.imageBlobData = cursor.getBlob(itemMapping.index);
@@ -305,6 +301,7 @@ public class WidgetListAdapter extends BaseAdapter {
 		ItemMapping itemMapping;
 		View child;
 		ImageView iv;
+		RowElement rowElement;
 		try {
 			// bind children views
 			for (int i = size - 1; i >= 0; i--) {
@@ -312,14 +309,13 @@ public class WidgetListAdapter extends BaseAdapter {
 
 				child = view.findViewById(itemMapping.layoutId);
 
-				RowElement rowElement = rowsElementsList.get(itemPosition).singleRowElementsList
+				rowElement = rowsElementsList.get(itemPosition).singleRowElementsList
 						.get(itemMapping.layoutId);
 
 				switch (itemMapping.type) {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
 					if (!(child instanceof TextView))
 						break;
-					// String text = cursor.getString(itemMapping.index);
 					String text = rowElement.text;
 					if (text != null)
 						((TextView) child).setText(text);
@@ -329,10 +325,9 @@ public class WidgetListAdapter extends BaseAdapter {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
 					if (!(child instanceof TextView))
 						break;
-					// String textHtml = cursor.getString(itemMapping.index);
-					String textHtml = rowElement.text;
+					Spanned textHtml = rowElement.spannedText;
 					if (textHtml != null)
-						((TextView) child).setText(Html.fromHtml(textHtml));
+						((TextView) child).setText(textHtml);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
@@ -340,12 +335,16 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					// byte[] data = cursor.getBlob(itemMapping.index);
 					byte[] data = rowElement.imageBlobData;
+
+//					if (RECYCLE) {
+//						// recycle old bitmap
+//						BitmapDrawable lastDrawableImageBlob = (BitmapDrawable) iv.getDrawable();
+//						if ((lastDrawableImageBlob != null) && (!lastDrawableImageBlob.getBitmap().isRecycled()))
+//							lastDrawableImageBlob.getBitmap().recycle();
+//					}
+
 					if (data != null) {
-						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
-						if ((lastDrawable != null) && (!lastDrawable.getBitmap().isRecycled()))
-							lastDrawable.getBitmap().recycle();
 						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
 					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
@@ -358,13 +357,15 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					// String uriStr = cursor.getString(itemMapping.index);
 					String uriStr = rowElement.imageUri;
+
 					if ((uriStr != null) && (!uriStr.equals(""))) {
-						// recycle old bitmap
-						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
-						if ((lastDrawable != null) && (!lastDrawable.getBitmap().isRecycled()))
-							lastDrawable.getBitmap().recycle();
+						if (RECYCLE) {
+							// recycle old bitmap
+							BitmapDrawable lastDrawableImageUri = (BitmapDrawable) iv.getDrawable();
+							if ((lastDrawableImageUri != null) && (!lastDrawableImageUri.getBitmap().isRecycled()))
+								lastDrawableImageUri.getBitmap().recycle();
+						}
 						// assign new bitmap
-//						iv.setImageBitmap(BitmapFactory.decodeFile(uriStr));
 						iv.setImageDrawable(null);
 						iv.setImageURI(Uri.parse(uriStr));
 					} else
@@ -376,10 +377,16 @@ public class WidgetListAdapter extends BaseAdapter {
 					iv = (ImageView) child;
 					// int res = cursor.getInt(itemMapping.index);
 					int res = rowElement.imageResId;
+
+//					if (RECYCLE) {
+//						// recycle old bitmap
+//						BitmapDrawable lastDrawableImageRes = (BitmapDrawable) iv.getDrawable();
+//						if ((lastDrawableImageRes != null) && (!lastDrawableImageRes.getBitmap().isRecycled()))
+//							lastDrawableImageRes.getBitmap().recycle();
+//					}
+
 					if (res > 0) {
-//						BitmapDrawable lastDrawable = (BitmapDrawable) iv.getDrawable();
-//						if (lastDrawable != null)
-//							lastDrawable.getBitmap().recycle();
+						// assign new bitmap
 						iv.setImageResource(res);
 					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
@@ -400,10 +407,24 @@ public class WidgetListAdapter extends BaseAdapter {
 				}
 			}
 
+		} catch (OutOfMemoryError e) {
+			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() + " Kb");
+
+			e.printStackTrace();
+
 		} catch (Exception e) {
+			Log.d(LOG_TAG, "****** freeMemory = " + Runtime.getRuntime().freeMemory() + " Kb");
 			e.printStackTrace();
 		}
 
+		Log.d(LOG_TAG, "freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
+
+		if (Runtime.getRuntime().freeMemory() < 500000) {
+			if (LOGD)
+				Log.d(LOG_TAG, "force gargabe collecting below 500kb");
+				
+			System.gc();
+		}
 	}
 
 	public View newView(Context context, Cursor c, ViewGroup parent) {
@@ -462,8 +483,6 @@ public class WidgetListAdapter extends BaseAdapter {
 		if (LOGD)
 			Log.d(LOG_TAG, "notifyToRegenerate widgetId = " + mAppWidgetId);
 
-		if (mRegenerateCacheThread == null)
-			mRegenerateCacheThread = new RegenerateCacheThread();
-		mRegenerateCacheThread.run();
+		mHandler.post(mUpdateResults);
 	}
 }
