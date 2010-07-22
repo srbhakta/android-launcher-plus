@@ -76,7 +76,8 @@ public class ListViewImageManager {
 			if (ref != null) {
 				bmp = ref.get();
 			} else {
-				Log.d(TAG, "image ID missing !!!!!!!!!!");
+				if (LOGD)
+					Log.d(TAG, "image ID missing !!!!!!!!!!");
 			}
 		}
 
@@ -85,7 +86,8 @@ public class ListViewImageManager {
 				Log.d(TAG, "image ID restored");
 
 		if (bmp == null) {
-			Log.d(TAG, "image ID decoded");
+			if (LOGD)
+				Log.d(TAG, "image ID decoded");
 			bmp = BitmapFactory.decodeResource(ctx.getResources(), imgId);
 			mCacheForImageById.put(imgId, new SoftReference<Bitmap>(bmp));
 		}

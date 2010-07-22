@@ -398,8 +398,9 @@ public class WidgetListAdapter extends BaseAdapter {
 			e.printStackTrace();
 		}
 
-//		if (LOGD)
-//			Log.d(LOG_TAG, "freeMemory = " + Runtime.getRuntime().freeMemory() / 1000 + " Kb");
+		// if (LOGD)
+		// Log.d(LOG_TAG, "freeMemory = " + Runtime.getRuntime().freeMemory() /
+		// 1000 + " Kb");
 
 		if (Runtime.getRuntime().freeMemory() < 500000) {
 			if (LOGD)
@@ -424,7 +425,7 @@ public class WidgetListAdapter extends BaseAdapter {
 				intent.putExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, v.getId());
 				intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_ID, mListViewId);
 				intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_POS, pos);
-								
+
 				Rect srcRect = new Rect();
 				final int[] location = new int[2];
 				v.getLocationOnScreen(location);
@@ -476,13 +477,13 @@ public class WidgetListAdapter extends BaseAdapter {
 			convertView = mInflater.inflate(mItemLayoutId, null);
 			holder = new ViewHolder(mItemMappings.length);
 			convertView.setTag(holder);
-			if (LOGD)
-				Log.d(LOG_TAG, "*** new view");
+			// if (LOGD)
+			// Log.d(LOG_TAG, "*** new view");
 
 		} else {
 			holder = (ViewHolder) convertView.getTag();
-			if (LOGD)
-				Log.d(LOG_TAG, "*** recycled view");
+			// if (LOGD)
+			// Log.d(LOG_TAG, "*** recycled view");
 		}
 
 		if (position < getCount())
