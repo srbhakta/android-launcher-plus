@@ -1,7 +1,6 @@
 package mobi.intuitit.android.widget;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import mobi.intuitit.android.content.LauncherIntent;
 import android.appwidget.AppWidgetManager;
@@ -40,21 +39,14 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private static final boolean LOGD = true;
 
-	private static final int NB_MAX_ITEM_VIEWS_PER_ROW = 10;
-
 	private static final int NB_MAX_VIEWS_CREATED = 10;
 
 	final LayoutInflater mInflater;
-
 	final int mItemLayoutId;
-
 	final int mAppWidgetId;
 	final int mListViewId;
-
 	ItemMapping[] mItemMappings;
-
 	boolean mAllowRequery = true;
-
 	private ContentResolver mContentResolver;
 	private Intent mIntent;
 
@@ -71,7 +63,11 @@ public class WidgetListAdapter extends BaseAdapter {
 	}
 
 	class RowElementsList {
-		HashMap<Integer, RowElement> singleRowElementsList = new HashMap<Integer, RowElement>();
+		RowElement[] singleRowElementsList;
+
+		public RowElementsList(int size) {
+			singleRowElementsList = new RowElement[size];
+		}
 	}
 
 	public ArrayList<RowElementsList> rowsElementsList = new ArrayList<RowElementsList>();
@@ -242,7 +238,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		while ((cursor != null) && (cursor.moveToNext())) {
 
-			RowElementsList singleRowElem = new RowElementsList();
+			RowElementsList singleRowElem = new RowElementsList(size);
 
 			ItemMapping itemMapping;
 			try {
@@ -283,7 +279,7 @@ public class WidgetListAdapter extends BaseAdapter {
 						}
 					}
 
-					singleRowElem.singleRowElementsList.put(itemMapping.layoutId, re);
+					singleRowElem.singleRowElementsList[i] = re;
 
 				}
 
@@ -320,24 +316,22 @@ public class WidgetListAdapter extends BaseAdapter {
 					holder.views[i] = child;
 				}
 
-				rowElement = rowsElementsList.get(itemPosition).singleRowElementsList.get(itemMapping.layoutId);
+				rowElement = rowsElementsList.get(itemPosition).singleRowElementsList[i];
 
 				switch (itemMapping.type) {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
 					if (!(child instanceof TextView))
 						break;
-					String text = rowElement.text;
-					if (text != null)
-						((TextView) child).setText(text);
+					if (rowElement.text != null)
+						((TextView) child).setText(rowElement.text);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
 					if (!(child instanceof TextView))
 						break;
-					Spanned textHtml = rowElement.spannedText;
-					if (textHtml != null)
-						((TextView) child).setText(textHtml);
+					if (rowElement.spannedText != null)
+						((TextView) child).setText(rowElement.spannedText);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
@@ -345,10 +339,9 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					byte[] data = rowElement.imageBlobData;
-
-					if (data != null) {
-						iv.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
+					if (rowElement.imageBlobData != null) {
+						iv.setImageBitmap(BitmapFactory.decodeByteArray(rowElement.imageBlobData, 0,
+								rowElement.imageBlobData.length));
 					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
 					else
@@ -358,10 +351,8 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					String uriStr = rowElement.imageUri;
-
-					if ((uriStr != null) && (!uriStr.equals(""))) {
-						Drawable d = mImageManager.getImageFromUri(context, uriStr);
+					if ((rowElement.imageUri != null) && (!rowElement.imageUri.equals(""))) {
+						Drawable d = mImageManager.getImageFromUri(context, rowElement.imageUri);
 						iv.setImageDrawable(d);
 					} else
 						iv.setImageDrawable(null);
@@ -370,11 +361,9 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					int res = rowElement.imageResId;
-
-					if (res > 0) {
+					if (rowElement.imageResId > 0) {
 						// assign new bitmap
-						Bitmap bitmap = mImageManager.getImageFromId(context, res);
+						Bitmap bitmap = mImageManager.getImageFromId(context, rowElement.imageResId);
 						iv.setImageBitmap(bitmap);
 						// iv.setImageResource(res);
 					} else if (itemMapping.defaultResource > 0) {
@@ -395,7 +384,6 @@ public class WidgetListAdapter extends BaseAdapter {
 						holder.lvClickItemTag = rowElement.tag;
 					}
 				}
-
 			}
 
 		} catch (OutOfMemoryError e) {
@@ -486,10 +474,15 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		if (convertView == null) {
 			convertView = mInflater.inflate(mItemLayoutId, null);
-			holder = new ViewHolder();
+			holder = new ViewHolder(mItemMappings.length);
 			convertView.setTag(holder);
+			if (LOGD)
+				Log.d(LOG_TAG, "*** new view");
+
 		} else {
 			holder = (ViewHolder) convertView.getTag();
+			if (LOGD)
+				Log.d(LOG_TAG, "*** recycled view");
 		}
 
 		if (position < getCount())
@@ -500,8 +493,12 @@ public class WidgetListAdapter extends BaseAdapter {
 	}
 
 	public static class ViewHolder {
-		public View views[] = new View[NB_MAX_ITEM_VIEWS_PER_ROW];
+		public View views[];
 		public Object lvClickItemTag = null;
+
+		public ViewHolder(int size) {
+			views = new View[size];
+		}
 	}
 
 	public void notifyToRegenerate() {
@@ -510,7 +507,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		mHandler.post(mUpdateResults);
 	}
-} 
+}
 
 // if (RECYCLE) {
 // // recycle old bitmap
