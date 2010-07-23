@@ -77,6 +77,13 @@ public abstract class WidgetSpace extends ViewGroup {
 			Log.i("AnimationProvider", "" + intent);
 
 			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+			if (widgetId < 0)
+                widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
+            if (widgetId < 0) {
+                Log.e(TAG, "Scroll Provider cannot get a legal widget id");
+                return;
+            }
+            
 			AppWidgetHostView widgetView = null;
 
 			try {
@@ -110,6 +117,7 @@ public abstract class WidgetSpace extends ViewGroup {
 			} catch (Exception e) {
 				// TODO may be flurry may help me collect this kind of
 				// exceptions
+			    e.printStackTrace();
 			}
 		}
 
@@ -242,31 +250,58 @@ public abstract class WidgetSpace extends ViewGroup {
 
 		}
 
-		/**
-		 * Find widget in a given screen
-		 * 
-		 * @param screen
-		 * @param appWidgetId
-		 * @return
-		 */
-		private final AppWidgetHostView findWidget(int screen, int appWidgetId) {
-			if (appWidgetId < 0)
-				return null;
-
-			WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
-			for (int i = cells.getChildCount() - 1; i >= 0; i--) {
-				try {
-					AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
-					if (widgetView.getAppWidgetId() == appWidgetId)
-						return widgetView;
-				} catch (Exception e) {
-				}
-			}
-
-			return null;
-		}
 	};
 
+    /**
+     * Look for a widget in all screens
+     * 
+     * @param appWidgetId
+     * @return
+     */
+    final AppWidgetHostView findWidget(int appWidgetId) {
+        AppWidgetHostView wv;
+        for (int i = getChildCount() - 1; i >= 0; i--) {
+            wv = findWidget(i, appWidgetId);
+            if (wv != null)
+                return wv;
+        }
+        return null;
+    }
+
+    /**
+     * Find widget in a given screen
+     * 
+     * @param screen
+     * @param appWidgetId
+     * @return
+     */
+    final AppWidgetHostView findWidget(int screen, int appWidgetId) {
+        if (appWidgetId < 0)
+            return null;
+
+        View child = getChildAt(screen);
+        if (child == null)
+            return null;
+
+        if (child instanceof AppWidgetHostView) {
+            AppWidgetHostView widgetView = (AppWidgetHostView) child;
+            if (widgetView.getAppWidgetId() == appWidgetId)
+                return widgetView;
+        } else if (child instanceof ViewGroup) {
+            ViewGroup cells = (ViewGroup) getChildAt(screen);
+            for (int i = cells.getChildCount() - 1; i >= 0; i--) {
+                try {
+                    AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
+                    if (widgetView.getAppWidgetId() == appWidgetId)
+                        return widgetView;
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        return null;
+    }
+    
 	ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
 	// listview informations storage for each provider data Uri
@@ -306,6 +341,13 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			// Try to get the widget view
 			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+			if (widgetId < 0)
+                widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
+            if (widgetId < 0) {
+                Log.e(TAG, "Scroll Provider cannot get a legal widget id");
+                return;
+            }
+            
 			AppWidgetHostView widgetView = findWidget(widgetId);
 
 			if (widgetView == null) {
@@ -557,40 +599,6 @@ public abstract class WidgetSpace extends ViewGroup {
 					result |= replaceView((ViewGroup) child, id, replacement);
 			}
 			return result;
-		}
-
-		private final AppWidgetHostView findWidget(int appWidgetId) {
-			AppWidgetHostView wv = null;
-			for (int i = getChildCount() - 1; i >= 0; i--) {
-				wv = findWidget(i, appWidgetId);
-				if (wv != null)
-					break;
-			}
-			return wv;
-		}
-
-		/**
-		 * Find widget in a given screen
-		 * 
-		 * @param screen
-		 * @param appWidgetId
-		 * @return
-		 */
-		private final AppWidgetHostView findWidget(int screen, int appWidgetId) {
-			if (appWidgetId < 0)
-				return null;
-
-			WidgetCellLayout cells = (WidgetCellLayout) getChildAt(screen);
-			for (int i = cells.getChildCount() - 1; i >= 0; i--) {
-				try {
-					AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
-					if (widgetView.getAppWidgetId() == appWidgetId)
-						return widgetView;
-				} catch (Exception e) {
-				}
-			}
-
-			return null;
 		}
 
 		public void onScroll(AbsListView arg0, int arg1, int arg2, int arg3) {
