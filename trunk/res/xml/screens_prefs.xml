@@ -29,10 +29,5 @@
             android:action="android.intent.action.VIEW"
             android:data="@string/donate_address" />
     </PreferenceScreen>
-    <!--
-        <PreferenceScreen android:title="@string/hpp_ad_title"
-        android:summary="@string/hpp_ad_summary"> <intent
-        android:action="android.intent.action.VIEW"
-        android:data="market://search?pname=mobi.intuitit.android.x.launcher" /> </PreferenceScreen>
-    -->
+
 </PreferenceScreen>

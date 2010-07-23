@@ -28,8 +28,6 @@ import android.content.Context;
  */
 public class LauncherAppWidgetHost extends AppWidgetHost {
 	
-	Workspace mWorkspace;
-	
     public LauncherAppWidgetHost(Context context, int hostId) {
         super(context, hostId);
     }
@@ -38,11 +36,7 @@ public class LauncherAppWidgetHost extends AppWidgetHost {
     protected AppWidgetHostView onCreateView(Context context, int appWidgetId,
             AppWidgetProviderInfo appWidget) {
     	LauncherAppWidgetHostView view = new LauncherAppWidgetHostView(context);
-    	view.setWorkspace(mWorkspace);
         return view;
     }
-
-	public void setWorkspace(Workspace workspace) {
-		mWorkspace = workspace;
-	}
+    
 }
