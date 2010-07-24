@@ -2,6 +2,7 @@ package mobi.intuitit.android.widget;
 
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -14,6 +15,14 @@ public class ListViewImageManager {
 	private static final String TAG = "ListViewImageManager";
 
 	private static final boolean LOGD = false;
+
+	private static ListViewImageManager instance;
+
+	public static ListViewImageManager getInstance() {
+		if (instance == null)
+			instance = new ListViewImageManager();
+		return instance;
+	}
 
 	private final HashMap<String, SoftReference<Drawable>> mCacheForImageByUri = new HashMap<String, SoftReference<Drawable>>();
 
@@ -35,7 +44,6 @@ public class ListViewImageManager {
 						+ ")");
 
 		if (d == null) {
-			// bmp = BitmapFactory.decodeFile(imgUri);
 			Uri mUri = Uri.parse(imgUri);
 			String scheme = mUri.getScheme();
 			if (ContentResolver.SCHEME_ANDROID_RESOURCE.equals(scheme)) {
@@ -87,12 +95,27 @@ public class ListViewImageManager {
 			if (LOGD)
 				Log.d(TAG, "image ID decoded");
 
-			drawable = Drawable.createFromResourceStream(ctx.getResources(), null, ctx.getResources()
-					.openRawResource(imgId), ctx.getResources().getResourceName(imgId));
+			drawable = Drawable.createFromResourceStream(ctx.getResources(), null, ctx.getResources().openRawResource(
+					imgId), ctx.getResources().getResourceName(imgId));
 
 			mCacheForImageById.put(imgId, new SoftReference<Drawable>(drawable));
 		}
 		return drawable;
+	}
+
+	public void unbindDrawables() {
+
+		for (Entry<Integer, SoftReference<Drawable>> drawableEntry : mCacheForImageById.entrySet()) {
+			if ((drawableEntry != null) && (drawableEntry.getValue() != null)
+					&& (drawableEntry.getValue().get() != null))
+				drawableEntry.getValue().get().setCallback(null);
+		}
+
+		for (Entry<String, SoftReference<Drawable>> drawableEntry : mCacheForImageByUri.entrySet()) {
+			if ((drawableEntry != null) && (drawableEntry.getValue() != null)
+					&& (drawableEntry.getValue().get() != null))
+				drawableEntry.getValue().get().setCallback(null);
+		}
 	}
 
 }
