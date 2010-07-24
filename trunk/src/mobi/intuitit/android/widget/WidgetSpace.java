@@ -329,6 +329,7 @@ public abstract class WidgetSpace extends ViewGroup {
 		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
 			item.lv.setAdapter(null);
 		}
+		ListViewImageManager.getInstance().unbindDrawables();
 		return false;
 	}
 
@@ -527,10 +528,10 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			public void onItemClick(AdapterView<?> arg0, View view, int pos, long arg3) {
 				try {
-
-					ViewHolder holder = (ViewHolder) view.getTag();
-					Object tag = holder.lvClickItemTag;
-
+					
+	                ViewHolder holder = (ViewHolder) view.getTag();
+	                Object tag = holder.lvClickItemTag;
+	                
 					if (tag != null && tag instanceof String) {
 						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) tag));
 						getContext().startActivity(intent);

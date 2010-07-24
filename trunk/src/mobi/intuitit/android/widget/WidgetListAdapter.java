@@ -49,7 +49,7 @@ public class WidgetListAdapter extends BaseAdapter {
 	private ContentResolver mContentResolver;
 	private Intent mIntent;
 
-	static ListViewImageManager mImageManager = new ListViewImageManager();
+	static ListViewImageManager mImageManager = ListViewImageManager.getInstance();
 
 	class RowElement {
 		// item data
@@ -508,6 +508,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 		mHandler.post(mUpdateResults);
 	}
+
 }
 
 // if (RECYCLE) {
