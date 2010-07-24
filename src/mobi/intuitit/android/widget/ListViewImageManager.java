@@ -5,8 +5,6 @@ import java.util.HashMap;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
@@ -19,7 +17,7 @@ public class ListViewImageManager {
 
 	private final HashMap<String, SoftReference<Drawable>> mCacheForImageByUri = new HashMap<String, SoftReference<Drawable>>();
 
-	private final HashMap<Integer, SoftReference<Bitmap>> mCacheForImageById = new HashMap<Integer, SoftReference<Bitmap>>();
+	private final HashMap<Integer, SoftReference<Drawable>> mCacheForImageById = new HashMap<Integer, SoftReference<Drawable>>();
 
 	public Drawable getImageFromUri(Context mContext, String imgUri) {
 		// Bitmap bmp = null;
@@ -69,12 +67,12 @@ public class ListViewImageManager {
 		return d;
 	}
 
-	public Bitmap getImageFromId(Context ctx, int imgId) {
-		Bitmap bmp = null;
+	public Drawable getImageFromId(Context ctx, int imgId) {
+		Drawable drawable = null;
 		if (mCacheForImageById.containsKey(imgId) && mCacheForImageById.get(imgId) != null) {
-			SoftReference<Bitmap> ref = mCacheForImageById.get(imgId);
+			SoftReference<Drawable> ref = mCacheForImageById.get(imgId);
 			if (ref != null) {
-				bmp = ref.get();
+				drawable = ref.get();
 			} else {
 				if (LOGD)
 					Log.d(TAG, "image ID missing !!!!!!!!!!");
@@ -82,16 +80,19 @@ public class ListViewImageManager {
 		}
 
 		if (LOGD)
-			if (bmp != null)
+			if (drawable != null)
 				Log.d(TAG, "image ID restored");
 
-		if (bmp == null) {
+		if (drawable == null) {
 			if (LOGD)
 				Log.d(TAG, "image ID decoded");
-			bmp = BitmapFactory.decodeResource(ctx.getResources(), imgId);
-			mCacheForImageById.put(imgId, new SoftReference<Bitmap>(bmp));
+
+			drawable = Drawable.createFromResourceStream(ctx.getResources(), null, ctx.getResources()
+					.openRawResource(imgId), ctx.getResources().getResourceName(imgId));
+
+			mCacheForImageById.put(imgId, new SoftReference<Drawable>(drawable));
 		}
-		return bmp;
+		return drawable;
 	}
 
 }
