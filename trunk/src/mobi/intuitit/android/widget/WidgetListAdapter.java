@@ -9,7 +9,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -362,13 +361,14 @@ public class WidgetListAdapter extends BaseAdapter {
 						break;
 					iv = (ImageView) child;
 					if (rowElement.imageResId > 0) {
+						
 						// assign new bitmap
-						Bitmap bitmap = mImageManager.getImageFromId(context, rowElement.imageResId);
-						iv.setImageBitmap(bitmap);
-						// iv.setImageResource(res);
+						Drawable drawable = mImageManager.getImageFromId(context, rowElement.imageResId);
+						//iv.setImageResource(rowElement.imageResId);
+						iv.setImageDrawable(drawable);
 					} else if (itemMapping.defaultResource > 0) {
-						Bitmap bitmap = mImageManager.getImageFromId(context, itemMapping.defaultResource);
-						iv.setImageBitmap(bitmap);
+						Drawable drawable = mImageManager.getImageFromId(context, itemMapping.defaultResource);
+						iv.setImageDrawable(drawable);
 					} else
 						iv.setImageDrawable(null);
 					break;

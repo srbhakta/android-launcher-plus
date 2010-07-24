@@ -56,8 +56,10 @@
 
     <application
         android:name="LauncherApplication"
-        android:process="android.process.acore"
-        android:label="@string/application_name" android:icon="@drawable/icon_lp">
+        android:label="@string/application_name" android:icon="@drawable/icon_lp"
+        android:debuggable="true">
+
+<!--         android:process="android.process.acore" -->
 
         <activity
             android:name="Launcher"
