@@ -43,6 +43,12 @@ public abstract class WidgetSpace extends ViewGroup {
 
 	private static final String TAG = "WidgetSpace";
 
+	private static final boolean LOGD = true;
+
+	private static final boolean CLEAR_DATA_CACHE = false;
+
+	private static final boolean FORCE_FREE_MEMORY = false;
+
 	protected boolean mAllowLongPress;
 
 	protected int mCurrentScreen;
@@ -78,12 +84,12 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
 			if (widgetId < 0)
-                widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
-            if (widgetId < 0) {
-                Log.e(TAG, "Scroll Provider cannot get a legal widget id");
-                return;
-            }
-            
+				widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
+			if (widgetId < 0) {
+				Log.e(TAG, "Scroll Provider cannot get a legal widget id");
+				return;
+			}
+
 			AppWidgetHostView widgetView = null;
 
 			try {
@@ -117,7 +123,7 @@ public abstract class WidgetSpace extends ViewGroup {
 			} catch (Exception e) {
 				// TODO may be flurry may help me collect this kind of
 				// exceptions
-			    e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 
@@ -252,56 +258,55 @@ public abstract class WidgetSpace extends ViewGroup {
 
 	};
 
-    /**
-     * Look for a widget in all screens
-     * 
-     * @param appWidgetId
-     * @return
-     */
-    final AppWidgetHostView findWidget(int appWidgetId) {
-        AppWidgetHostView wv;
-        for (int i = getChildCount() - 1; i >= 0; i--) {
-            wv = findWidget(i, appWidgetId);
-            if (wv != null)
-                return wv;
-        }
-        return null;
-    }
+	/**
+	 * Look for a widget in all screens
+	 * 
+	 * @param appWidgetId
+	 * @return
+	 */
+	final AppWidgetHostView findWidget(int appWidgetId) {
+		AppWidgetHostView wv;
+		for (int i = getChildCount() - 1; i >= 0; i--) {
+			wv = findWidget(i, appWidgetId);
+			if (wv != null)
+				return wv;
+		}
+		return null;
+	}
 
-    /**
-     * Find widget in a given screen
-     * 
-     * @param screen
-     * @param appWidgetId
-     * @return
-     */
-    final AppWidgetHostView findWidget(int screen, int appWidgetId) {
-        if (appWidgetId < 0)
-            return null;
+	/**
+	 * Find widget in a given screen
+	 * 
+	 * @param screen
+	 * @param appWidgetId
+	 * @return
+	 */
+	final AppWidgetHostView findWidget(int screen, int appWidgetId) {
+		if (appWidgetId < 0)
+			return null;
 
-        View child = getChildAt(screen);
-        if (child == null)
-            return null;
+		View child = getChildAt(screen);
+		if (child == null)
+			return null;
 
-        if (child instanceof AppWidgetHostView) {
-            AppWidgetHostView widgetView = (AppWidgetHostView) child;
-            if (widgetView.getAppWidgetId() == appWidgetId)
-                return widgetView;
-        } else if (child instanceof ViewGroup) {
-            ViewGroup cells = (ViewGroup) getChildAt(screen);
-            for (int i = cells.getChildCount() - 1; i >= 0; i--) {
-                try {
-                    AppWidgetHostView widgetView = (AppWidgetHostView) cells.getChildAt(i);
-                    if (widgetView.getAppWidgetId() == appWidgetId)
-                        return widgetView;
-                } catch (Exception e) {
-                }
-            }
-        }
+		if (child instanceof AppWidgetHostView) {
+			AppWidgetHostView widgetView = (AppWidgetHostView) child;
+			if (widgetView.getAppWidgetId() == appWidgetId)
+				return widgetView;
+		} else if (child instanceof ViewGroup) {
+			ViewGroup cells = (ViewGroup) getChildAt(screen);
+			for (int i = cells.getChildCount() - 1; i >= 0; i--) {
+				View widgetView = cells.getChildAt(i);
+				if (widgetView instanceof AppWidgetHostView) {
+					if (((AppWidgetHostView) widgetView).getAppWidgetId() == appWidgetId)
+						return (AppWidgetHostView) widgetView;
+				}
+			}
+		}
 
-        return null;
-    }
-    
+		return null;
+	}
+
 	ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
 	// listview informations storage for each provider data Uri
@@ -327,13 +332,25 @@ public abstract class WidgetSpace extends ViewGroup {
 	// Unbind ressource of scrollable widget
 	public synchronized boolean unbindWidgetScrollable() {
 		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
-			if (item.lv != null)
+			if (item.lv != null) {
+				if (CLEAR_DATA_CACHE) {
+					if (item.lv.getAdapter() != null)
+						((WidgetListAdapter) item.lv.getAdapter()).clearDataCache();
+				}
 				item.lv.setAdapter(null);
+			}
 			item.lv = null;
 		}
 		ListViewImageManager.getInstance().unbindDrawables();
-		ListViewImageManager.getInstance().clearCache();
-		System.gc();
+
+		if (CLEAR_DATA_CACHE) {
+			ListViewImageManager.getInstance().clearCache();
+		}
+
+		if (FORCE_FREE_MEMORY) {
+			System.gc();
+		}
+
 		return false;
 	}
 
@@ -347,13 +364,13 @@ public abstract class WidgetSpace extends ViewGroup {
 			// Try to get the widget view
 			int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
 			if (widgetId < 0)
-                widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
-            if (widgetId < 0) {
-                Log.e(TAG, "Scroll Provider cannot get a legal widget id");
-                return;
-            }
-            
- 			AppWidgetHostView widgetView = findWidget(widgetId);
+				widgetId = intent.getIntExtra(LauncherIntent.PNAME + "EXTRA_APPWIDGET_ID", -1);
+			if (widgetId < 0) {
+				Log.e(TAG, "Scroll Provider cannot get a legal widget id");
+				return;
+			}
+
+			AppWidgetHostView widgetView = findWidget(widgetId);
 
 			if (widgetView == null) {
 				getContext().sendBroadcast(
@@ -454,6 +471,10 @@ public abstract class WidgetSpace extends ViewGroup {
 					// store new adapter
 					listViewInfos.lvAdapter = lvAdapter;
 
+					if (LOGD)
+						Log.d(TAG, "makeScrollable : recreate listview adapter");
+				} else if (LOGD) {
+					Log.d(TAG, "makeScrollable : restore listview adapter");
 				}
 
 				lv.setAdapter(listViewInfos.lvAdapter);
@@ -467,13 +488,20 @@ public abstract class WidgetSpace extends ViewGroup {
 				// store informations in static memory
 				listViewInfos.widgetId = aid;
 				listViewInfos.lv = lv;
-				// listViewInfos.lvAdapter = lvAdapter;
 				mScrollViewCursorInfos.put(cursorDataUriString, listViewInfos);
 
 				// force listview position if asked
 				int position = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_POSITION, -1);
 				if (position >= 0)
 					lv.setSelection(position);
+
+				if (CLEAR_DATA_CACHE) {
+					listViewInfos.lvAdapter.notifyToRegenerate();
+				}
+
+				if (FORCE_FREE_MEMORY) {
+					System.gc();
+				}
 
 				return null;
 			} catch (Exception e) {
@@ -504,11 +532,12 @@ public abstract class WidgetSpace extends ViewGroup {
 
 				// destroy listview
 				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
-				ScrollViewInfos cursorInfos = mScrollViewCursorInfos.get(cursorDataUriString);
-				if (cursorInfos != null) {
-					cursorInfos.lv = null;
-					cursorInfos.obs = null;
-					cursorInfos.obsHandler = null;
+				ScrollViewInfos listViewInfos = mScrollViewCursorInfos.get(cursorDataUriString);
+				if (listViewInfos != null) {
+					listViewInfos.lv = null;
+					context.getContentResolver().unregisterContentObserver(listViewInfos.obs);
+					listViewInfos.obsHandler = null;
+					listViewInfos.obs = null;
 					mScrollViewCursorInfos.remove(cursorDataUriString);
 				}
 				return null;
@@ -653,6 +682,7 @@ public abstract class WidgetSpace extends ViewGroup {
 		try {
 			context.unregisterReceiver(receiver);
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
