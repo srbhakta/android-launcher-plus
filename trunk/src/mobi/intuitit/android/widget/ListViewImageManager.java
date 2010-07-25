@@ -29,7 +29,6 @@ public class ListViewImageManager {
 	private final HashMap<Integer, SoftReference<Drawable>> mCacheForImageById = new HashMap<Integer, SoftReference<Drawable>>();
 
 	public Drawable getImageFromUri(Context mContext, String imgUri) {
-		// Bitmap bmp = null;
 		Drawable d = null;
 		if (mCacheForImageByUri.containsKey(imgUri) && mCacheForImageByUri.get(imgUri) != null) {
 			SoftReference<Drawable> ref = mCacheForImageByUri.get(imgUri);
@@ -116,6 +115,11 @@ public class ListViewImageManager {
 					&& (drawableEntry.getValue().get() != null))
 				drawableEntry.getValue().get().setCallback(null);
 		}
+	}
+
+	public void clearCache() {
+		mCacheForImageById.clear();
+		mCacheForImageByUri.clear();
 	}
 
 }
