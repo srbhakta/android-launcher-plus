@@ -38,7 +38,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	private static final boolean LOGD = true;
 
-	private static final int NB_MAX_VIEWS_CREATED = 10;
+	private static final int NB_MAX_VIEWS_TYPES = 1;
 
 	final LayoutInflater mInflater;
 	final int mItemLayoutId;
@@ -53,11 +53,8 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	class RowElement {
 		// item data
-		public String text;
-		public Spanned spannedText;
-		public byte[] imageBlobData;
-		public String imageUri;
-		public int imageResId;
+		public Object data;
+		public int dataSize;
 		public String tag;
 	}
 
@@ -116,20 +113,22 @@ public class WidgetListAdapter extends BaseAdapter {
 	final Handler mHandler = new Handler();
 
 	// Create runnable for posting
-	final Runnable mUpdateResults = new Runnable() {
+	final Runnable mGenerateDataCacheRunnable = new Runnable() {
 		public void run() {
-			updateResultsInUi();
+			if (LOGD)
+				Log.d(LOG_TAG, "mGenerateDataCacheRunnable start");
+			generateDataCache();
+			System.gc();
+			notifyDataSetInvalidated();
+			if (LOGD)
+				Log.d(LOG_TAG, "mGenerateDataCacheRunnable end");
 		}
 	};
 
-	private void updateResultsInUi() {
+	public void clearDataCache() {
+		rowsElementsList.clear();
 		if (LOGD)
-			Log.d(LOG_TAG, "RegenerateCacheThread start");
-		generateCache();
-		System.gc();
-		notifyDataSetInvalidated();
-		if (LOGD)
-			Log.d(LOG_TAG, "RegenerateCacheThread end");
+			Log.d(LOG_TAG, "clearDataCache");
 	}
 
 	/**
@@ -171,7 +170,7 @@ public class WidgetListAdapter extends BaseAdapter {
 		generateItemMapping(intent);
 
 		// Generate data cache from content provider
-		mHandler.post(mUpdateResults);
+		mHandler.post(mGenerateDataCacheRunnable);
 
 	}
 
@@ -218,9 +217,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	}
 
-	private void generateCache() {
-
-		Log.d(LOG_TAG, "regenerate cache");
+	private void generateDataCache() {
 
 		if (mItemMappings == null)
 			return;
@@ -250,19 +247,21 @@ public class WidgetListAdapter extends BaseAdapter {
 
 					switch (itemMapping.type) {
 					case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
-						re.text = cursor.getString(itemMapping.index);
+						re.data = cursor.getString(itemMapping.index);
 						break;
 					case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
-						re.spannedText = Html.fromHtml(cursor.getString(itemMapping.index));
+						re.data = Html.fromHtml(cursor.getString(itemMapping.index));
 						break;
 					case LauncherIntent.Extra.Scroll.Types.IMAGEBLOB:
-						re.imageBlobData = cursor.getBlob(itemMapping.index);
+						byte[] localData = cursor.getBlob(itemMapping.index);
+						re.data = localData;
+						re.dataSize = localData.length;
 						break;
 					case LauncherIntent.Extra.Scroll.Types.IMAGEURI:
-						re.imageUri = cursor.getString(itemMapping.index);
+						re.data = cursor.getString(itemMapping.index);
 						break;
 					case LauncherIntent.Extra.Scroll.Types.IMAGERESOURCE:
-						re.imageResId = cursor.getInt(itemMapping.index);
+						re.data = cursor.getInt(itemMapping.index);
 						break;
 					}
 
@@ -321,16 +320,16 @@ public class WidgetListAdapter extends BaseAdapter {
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEW:
 					if (!(child instanceof TextView))
 						break;
-					if (rowElement.text != null)
-						((TextView) child).setText(rowElement.text);
+					if (rowElement.data != null)
+						((TextView) child).setText((String)rowElement.data);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
 				case LauncherIntent.Extra.Scroll.Types.TEXTVIEWHTML:
 					if (!(child instanceof TextView))
 						break;
-					if (rowElement.spannedText != null)
-						((TextView) child).setText(rowElement.spannedText);
+					if (rowElement.data != null)
+						((TextView) child).setText((Spanned)rowElement.data);
 					else
 						((TextView) child).setText(itemMapping.defaultResource);
 					break;
@@ -338,9 +337,9 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					if (rowElement.imageBlobData != null) {
-						iv.setImageBitmap(BitmapFactory.decodeByteArray(rowElement.imageBlobData, 0,
-								rowElement.imageBlobData.length));
+					if (rowElement.data != null) {
+						iv.setImageBitmap(BitmapFactory.decodeByteArray((byte[])rowElement.data, 0,
+								rowElement.dataSize));
 					} else if (itemMapping.defaultResource > 0)
 						iv.setImageResource(itemMapping.defaultResource);
 					else
@@ -350,8 +349,8 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					if ((rowElement.imageUri != null) && (!rowElement.imageUri.equals(""))) {
-						Drawable d = mImageManager.getImageFromUri(context, rowElement.imageUri);
+					if ((rowElement.data != null) && (!rowElement.data.equals(""))) {
+						Drawable d = mImageManager.getImageFromUri(context, (String)rowElement.data);
 						iv.setImageDrawable(d);
 					} else
 						iv.setImageDrawable(null);
@@ -360,11 +359,11 @@ public class WidgetListAdapter extends BaseAdapter {
 					if (!(child instanceof ImageView))
 						break;
 					iv = (ImageView) child;
-					if (rowElement.imageResId > 0) {
-						
+					if ((Integer)rowElement.data > 0) {
+
 						// assign new bitmap
-						Drawable drawable = mImageManager.getImageFromId(context, rowElement.imageResId);
-						//iv.setImageResource(rowElement.imageResId);
+						Drawable drawable = mImageManager.getImageFromId(context, (Integer)rowElement.data);
+						// iv.setImageResource(rowElement.imageResId);
 						iv.setImageDrawable(drawable);
 					} else if (itemMapping.defaultResource > 0) {
 						Drawable drawable = mImageManager.getImageFromId(context, itemMapping.defaultResource);
@@ -445,7 +444,7 @@ public class WidgetListAdapter extends BaseAdapter {
 
 	@Override
 	public int getViewTypeCount() {
-		return NB_MAX_VIEWS_CREATED;
+		return NB_MAX_VIEWS_TYPES;
 	}
 
 	@Override
@@ -506,7 +505,7 @@ public class WidgetListAdapter extends BaseAdapter {
 		if (LOGD)
 			Log.d(LOG_TAG, "notifyToRegenerate widgetId = " + mAppWidgetId);
 
-		mHandler.post(mUpdateResults);
+		mHandler.post(mGenerateDataCacheRunnable);
 	}
 
 }

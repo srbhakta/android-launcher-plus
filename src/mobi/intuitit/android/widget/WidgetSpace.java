@@ -332,6 +332,7 @@ public abstract class WidgetSpace extends ViewGroup {
 			item.lv = null;
 		}
 		ListViewImageManager.getInstance().unbindDrawables();
+		ListViewImageManager.getInstance().clearCache();
 		System.gc();
 		return false;
 	}
