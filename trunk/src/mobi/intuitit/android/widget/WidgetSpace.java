@@ -327,9 +327,12 @@ public abstract class WidgetSpace extends ViewGroup {
 	// Unbind ressource of scrollable widget
 	public synchronized boolean unbindWidgetScrollable() {
 		for (ScrollViewInfos item : mScrollViewCursorInfos.values()) {
-			item.lv.setAdapter(null);
+			if (item.lv != null)
+				item.lv.setAdapter(null);
+			item.lv = null;
 		}
 		ListViewImageManager.getInstance().unbindDrawables();
+		System.gc();
 		return false;
 	}
 
@@ -349,7 +352,7 @@ public abstract class WidgetSpace extends ViewGroup {
                 return;
             }
             
-			AppWidgetHostView widgetView = findWidget(widgetId);
+ 			AppWidgetHostView widgetView = findWidget(widgetId);
 
 			if (widgetView == null) {
 				getContext().sendBroadcast(
@@ -528,10 +531,10 @@ public abstract class WidgetSpace extends ViewGroup {
 
 			public void onItemClick(AdapterView<?> arg0, View view, int pos, long arg3) {
 				try {
-					
-	                ViewHolder holder = (ViewHolder) view.getTag();
-	                Object tag = holder.lvClickItemTag;
-	                
+
+					ViewHolder holder = (ViewHolder) view.getTag();
+					Object tag = holder.lvClickItemTag;
+
 					if (tag != null && tag instanceof String) {
 						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) tag));
 						getContext().startActivity(intent);
