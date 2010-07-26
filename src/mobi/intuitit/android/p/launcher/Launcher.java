@@ -218,7 +218,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
         mAppWidgetHost = new LauncherAppWidgetHost(this, APPWIDGET_HOST_ID);
         mAppWidgetHost.startListening();
-        
+
         if (PROFILE_STARTUP) {
             android.os.Debug.startMethodTracing("/sdcard/launcher");
         }
@@ -502,7 +502,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
                         ((ViewStub) findViewById(R.id.stub_screen_switcher)).inflate());
                 mScreenLayout.setScreenChangeListener(mScreenChangeListener);
             }
-            
+
             if (mScreenLayout.isShown())
                 mScreenLayout.fadeOut();
             else if (!DeleteZone.sDragging)
@@ -1047,7 +1047,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         getContentResolver().unregisterContentObserver(mWidgetObserver);
         unregisterReceiver(mApplicationsReceiver);
         unregisterReceiver(mCloseSystemDialogsReceiver);
-        
+
         mWorkspace.unregisterProvider();
     }
 
@@ -1739,7 +1739,8 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             workspace.requestLayout();
 
             // finish load a widget, send it an intent
-            appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
+            if (appWidgetInfo != null)
+                appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
         }
 
         if (appWidgets.isEmpty()) {
@@ -1753,7 +1754,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
         Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
-        		AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
+                AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
         sendBroadcast(ready);
     }
 
@@ -1822,6 +1823,12 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         if (tag instanceof ApplicationInfo) {
             // Open shortcut
             final Intent intent = ((ApplicationInfo) tag).intent;
+            // set bound
+            if (v != null) {
+                Rect targetRect = new Rect();
+                v.getGlobalVisibleRect(targetRect);
+                intent.setSourceBounds(targetRect);
+            }
             startActivitySafely(intent);
         } else if (tag instanceof FolderInfo) {
             handleFolderClick((FolderInfo) tag);

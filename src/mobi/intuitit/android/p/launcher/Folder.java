@@ -17,6 +17,7 @@
 package mobi.intuitit.android.p.launcher;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -74,6 +75,12 @@ public class Folder extends LinearLayout implements DragSource, OnItemLongClickL
     
     public void onItemClick(AdapterView parent, View v, int position, long id) {
         ApplicationInfo app = (ApplicationInfo) parent.getItemAtPosition(position);
+        // set bound
+        if (v != null) {
+            Rect targetRect = new Rect();
+            v.getGlobalVisibleRect(targetRect);
+            app.intent.setSourceBounds(targetRect);
+        }
         mLauncher.startActivitySafely(app.intent);
     }
 

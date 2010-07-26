@@ -108,7 +108,7 @@
             android:readPermission="mobi.intuitit.android.p.launcher.permission.READ_SETTINGS" />
 
     <activity
-        android:name="ScreenPrefActivity"></activity>
+        android:name="ScreenPrefActivity" android:screenOrientation="sensor"></activity>
   
 </application>
     <uses-sdk android:minSdkVersion="6"/>

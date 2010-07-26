@@ -412,6 +412,7 @@ public abstract class WidgetSpace extends ViewGroup {
 				return "Dummy view id needed.";
 
 			final ComponentName appWidgetProvider = widgetView.getAppWidgetInfo().provider;
+			final int appWidgetId = widgetView.getAppWidgetId();
 
 			try {
 				// Create a context for loading resources
@@ -419,30 +420,34 @@ public abstract class WidgetSpace extends ViewGroup {
 						widgetView.getAppWidgetInfo().provider.getPackageName(), Context.CONTEXT_IGNORE_SECURITY);
 
 				ListView lv = null;
+				
+				View dummyView = widgetView.findViewById(dummyViewId);
+                if (dummyView == null)
+                    return "Dummy view needed.";
 
-				final int aid = widgetView.getAppWidgetId();
-				final Activity a = getLauncherActivity();
-				if (a == null)
-					return null;
-
-				// inflate listview
-				final int listViewResId = intent.getIntExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_LAYOUT_ID, -1);
-				if (listViewResId <= 0) {
-					// try to post the newly created listview to the widget
-					lv = postListView(widgetView, dummyViewId);
-					if (lv == null)
-						return "Cannot create the default list view.";
-				} else {
-					// TODO inflate it
-					LayoutInflater inflater = LayoutInflater.from(remoteContext);
-					View v = inflater.inflate(listViewResId, null);
-					if (v instanceof ListView) {
-						lv = (ListView) v;
-						if (!replaceView(widgetView, dummyViewId, lv))
-							return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
-					} else
-						return "Cannot inflate a list view from the passed layout resource id.";
-				}
+                if (dummyView instanceof ListView)
+                    lv = (ListView) dummyView;
+                else {
+                    // inflate listview
+                    final int listViewResId = intent.getIntExtra(
+                            LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_LAYOUT_ID, -1);
+                    if (listViewResId <= 0) {
+                        // try to post the newly created listview to the widget
+                        lv = postListView(widgetView, dummyViewId);
+                        if (lv == null)
+                            return "Cannot create the default list view.";
+                    } else {
+                        // Inflate it
+                        LayoutInflater inflater = LayoutInflater.from(remoteContext);
+                        dummyView = inflater.inflate(listViewResId, null);
+                        if (dummyView instanceof ListView) {
+                            lv = (ListView) dummyView;
+                            if (!replaceView(widgetView, dummyViewId, lv))
+                                return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
+                        } else
+                            return "Cannot inflate a list view from the passed layout resource id.";
+                    }
+                }
 
 				String cursorDataUriString = intent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI);
 				ScrollViewInfos listViewInfos = mScrollViewCursorInfos.get(cursorDataUriString);
@@ -453,7 +458,7 @@ public abstract class WidgetSpace extends ViewGroup {
 					listViewInfos = new ScrollViewInfos();
 
 					final WidgetListAdapter lvAdapter = new WidgetListAdapter(remoteContext, intent, appWidgetProvider,
-							aid, dummyViewId);
+							appWidgetId, dummyViewId);
 
 					// create listener for content Provider data modification
 					WidgetDataChangeListener widgetDataChangeListener = new WidgetDataChangeListener() {
@@ -481,12 +486,12 @@ public abstract class WidgetSpace extends ViewGroup {
 
 				// finish listview configuration
 				if (!listViewInfos.lvAdapter.mItemChildrenClickable)
-					lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, aid, dummyViewId));
+					lv.setOnItemClickListener(new WidgetItemListener(appWidgetProvider, appWidgetId, dummyViewId));
 				lv.setFocusableInTouchMode(false);
 				lv.setOnScrollListener(this);
 
 				// store informations in static memory
-				listViewInfos.widgetId = aid;
+				listViewInfos.widgetId = appWidgetId;
 				listViewInfos.lv = lv;
 				mScrollViewCursorInfos.put(cursorDataUriString, listViewInfos);
 
