@@ -39,7 +39,7 @@ public abstract class WidgetCellLayout extends ViewGroup {
     /**
      * Called when this cell layout get into the viewport
      */
-    public void onViewportOut() {
+    public void onViewportIn() {
         View child;
         AppWidgetHostView widgetView;
         AppWidgetProviderInfo widgetInfo;
@@ -50,10 +50,11 @@ public abstract class WidgetCellLayout extends ViewGroup {
                 if (child instanceof AppWidgetHostView) {
                     widgetView = ((AppWidgetHostView) child);
                     widgetInfo = widgetView.getAppWidgetInfo();
+                    int appWidgetId = widgetView.getAppWidgetId();
                     intent = new Intent(LauncherIntent.Notification.NOTIFICATION_IN_VIEWPORT)
                             .setComponent(widgetInfo.provider);
-                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetView
-                            .getAppWidgetId());
+                    intent.putExtra(LauncherIntent.Extra.EXTRA_APPWIDGET_ID, appWidgetId);
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
                     getContext().sendBroadcast(intent);
                 }
             } catch (Exception e) {
@@ -66,7 +67,7 @@ public abstract class WidgetCellLayout extends ViewGroup {
     /**
      * Called when this cell layout get into the viewport
      */
-    public void onViewportIn() {
+    public void onViewportOut() {
         View child;
         AppWidgetHostView widgetView;
         AppWidgetProviderInfo widgetInfo;
@@ -83,10 +84,11 @@ public abstract class WidgetCellLayout extends ViewGroup {
 
                     // Notify the widget provider
                     widgetInfo = widgetView.getAppWidgetInfo();
+                    int appWidgetId = widgetView.getAppWidgetId();
                     intent = new Intent(LauncherIntent.Notification.NOTIFICATION_OUT_VIEWPORT)
                             .setComponent(widgetInfo.provider);
-                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetView
-                            .getAppWidgetId());
+                    intent.putExtra(LauncherIntent.Extra.EXTRA_APPWIDGET_ID, appWidgetId);
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
                     getContext().sendBroadcast(intent);
                 }
             } catch (Exception e) {

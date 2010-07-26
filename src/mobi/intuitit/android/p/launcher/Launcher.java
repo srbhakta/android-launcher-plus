@@ -1754,6 +1754,7 @@ public final class Launcher extends Activity implements View.OnClickListener, On
 
     private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
         Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
+                LauncherIntent.Extra.EXTRA_APPWIDGET_ID, appWidgetId).putExtra(
                 AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
         sendBroadcast(ready);
     }

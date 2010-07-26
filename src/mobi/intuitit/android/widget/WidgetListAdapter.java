@@ -425,7 +425,8 @@ public class WidgetListAdapter extends BaseAdapter {
                 String pos = (String) v.getTag();
                 Intent intent = new Intent(LauncherIntent.Action.ACTION_VIEW_CLICK);
                 intent.setComponent(mAppWidgetProvider);
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId).putExtra(
+                        LauncherIntent.Extra.EXTRA_APPWIDGET_ID, mAppWidgetId);
                 intent.putExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, v.getId());
                 intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_LISTVIEW_ID, mListViewId);
                 intent.putExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_POS, pos);
