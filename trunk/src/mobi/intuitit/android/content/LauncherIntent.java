@@ -201,7 +201,8 @@ public class LauncherIntent extends Intent {
             }
 
         }
-
+        
+        public static final String EXTRA_APPWIDGET_ID = PNAME + "EXTRA_APPWIDGET_ID";
         public static final String EXTRA_IMAGEVIEW_ID = PNAME + "EXTRA_IMAGEVIEW_ID";
         public static final String EXTRA_ANIMATION_ID = PNAME + "EXTRA_ANIMATION_ID";
         public static final String EXTRA_VIEW_ID = PNAME + "EXTRA_VIEW_ID";
