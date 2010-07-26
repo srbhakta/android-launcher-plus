@@ -255,7 +255,8 @@ public class WidgetListAdapter extends BaseAdapter {
 					case LauncherIntent.Extra.Scroll.Types.IMAGEBLOB:
 						byte[] localData = cursor.getBlob(itemMapping.index);
 						re.data = localData;
-						re.dataSize = localData.length;
+						if(localData!=null)
+							re.dataSize = localData.length;
 						break;
 					case LauncherIntent.Extra.Scroll.Types.IMAGEURI:
 						re.data = cursor.getString(itemMapping.index);
