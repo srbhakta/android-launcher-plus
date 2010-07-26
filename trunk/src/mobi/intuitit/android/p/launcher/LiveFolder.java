@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.provider.LiveFolders;
 import android.os.AsyncTask;
 import android.database.Cursor;
+import android.graphics.Rect;
 
 import java.lang.ref.WeakReference;
 
@@ -58,6 +59,12 @@ public class LiveFolder extends Folder {
                 Uri uri = baseIntent.getData();
                 uri = uri.buildUpon().appendPath(Long.toString(holder.id)).build();
                 intent.setData(uri);
+                // set bound
+                if (v != null) {
+                    Rect targetRect = new Rect();
+                    v.getGlobalVisibleRect(targetRect);
+                    intent.setSourceBounds(targetRect);
+                }
                 mLauncher.startActivitySafely(intent);
             }
         } else if (holder.intent != null) {
