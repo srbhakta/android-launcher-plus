@@ -594,6 +594,8 @@ public class CellLayout extends WidgetCellLayout {
         for (int i = 0; i < count; i++) {
             final View view = getChildAt(i);
             view.setDrawingCacheEnabled(enabled);
+            // reduce cache quality to reduce memory usage
+            view.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
             // Update the drawing caches
             view.buildDrawingCache(true);
         }
