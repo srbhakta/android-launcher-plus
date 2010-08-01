@@ -736,6 +736,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
         final int count = getChildCount();
         for (int i = 0; i < count; i++) {
             final CellLayout layout = (CellLayout) getChildAt(i);
+            layout.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
             layout.setChildrenDrawnWithCacheEnabled(true);
             layout.setChildrenDrawingCacheEnabled(true);
         }
