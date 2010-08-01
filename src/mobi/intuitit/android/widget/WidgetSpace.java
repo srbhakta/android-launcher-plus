@@ -329,7 +329,7 @@ public abstract class WidgetSpace extends ViewGroup {
 
     // listview informations storage for each provider data Uri
     class ScrollViewInfos {
-        ListView lv = null;
+        AbsListView lv = null;
         int widgetId = -1;
         ContentObserver obs;
         Handler obsHandler;
@@ -440,14 +440,14 @@ public abstract class WidgetSpace extends ViewGroup {
                         widgetView.getAppWidgetInfo().provider.getPackageName(),
                         Context.CONTEXT_IGNORE_SECURITY);
 
-                ListView lv = null;
+                AbsListView lv = null;
 
                 View dummyView = widgetView.findViewById(dummyViewId);
                 if (dummyView == null)
                     return "Dummy view needed.";
 
-                if (dummyView instanceof ListView)
-                    lv = (ListView) dummyView;
+                if (dummyView instanceof AbsListView)
+                    lv = (AbsListView) dummyView;
                 else {
                     // inflate listview
                     final int listViewResId = intent.getIntExtra(
@@ -461,8 +461,8 @@ public abstract class WidgetSpace extends ViewGroup {
                         // Inflate it
                         LayoutInflater inflater = LayoutInflater.from(remoteContext);
                         dummyView = inflater.inflate(listViewResId, null);
-                        if (dummyView instanceof ListView) {
-                            lv = (ListView) dummyView;
+                        if (dummyView instanceof AbsListView) {
+                            lv = (AbsListView) dummyView;
                             if (!replaceView(widgetView, dummyViewId, lv))
                                 return "Cannot replace the dummy with the list view inflated from the passed layout resource id.";
                         } else
