@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 import mobi.intuitit.android.content.LauncherIntent;
+import mobi.intuitit.android.content.LauncherMetadata;
 import mobi.intuitit.android.p.launcher.ScreenLayout.onScreenChangeListener;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -803,6 +804,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         } else if (sModel.isDesktopLoaded()) {
             sModel.addDesktopAppWidget(launcherInfo);
         }
+        // finish load a widget, send it an intent
+        if(appWidgetInfo!=null)
+        	appwidgetReadyBroadcast(appWidgetId, appWidgetInfo.provider);
     }
 
     public LauncherAppWidgetHost getAppWidgetHost() {
@@ -1225,6 +1229,28 @@ public final class Launcher extends Activity implements View.OnClickListener, On
         } else {
             AppWidgetProviderInfo appWidget = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
 
+            try 
+            { 
+                Bundle metadata = getPackageManager().getReceiverInfo(appWidget.provider, 
+                                                             PackageManager.GET_META_DATA).metaData; 
+                if (metadata.containsKey(LauncherMetadata.Requirements.APIVersion)) 
+                { 
+                        int requiredApiVersion = metadata.getInt(LauncherMetadata.Requirements.APIVersion); 
+                        if (requiredApiVersion > LauncherMetadata.CurrentAPIVersion) 
+                        { 
+                        	onActivityResult(REQUEST_CREATE_APPWIDGET, Activity.RESULT_CANCELED, data);
+                        	// Show a nice toast here to tell the user why the widget is rejected.
+                        	return;
+                        }
+                        // If there are Settings for scrollable or animations test them here too!
+                } 
+            } 
+            catch(PackageManager.NameNotFoundException expt) 
+            { 
+                // No Metadata available... then it is all OK... 
+            } 
+            
+            
             if (appWidget.configure != null) {
                 // Launch over to configure widget, if needed
                 Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
@@ -1755,7 +1781,9 @@ public final class Launcher extends Activity implements View.OnClickListener, On
     private void appwidgetReadyBroadcast(int appWidgetId, ComponentName cname) {
         Intent ready = new Intent(LauncherIntent.Action.ACTION_READY).putExtra(
                 LauncherIntent.Extra.EXTRA_APPWIDGET_ID, appWidgetId).putExtra(
-                AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).setComponent(cname);
+                AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).putExtra(
+                LauncherIntent.Extra.EXTRA_API_VERSION, LauncherMetadata.CurrentAPIVersion).		
+                setComponent(cname);
         sendBroadcast(ready);
     }
 
