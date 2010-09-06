@@ -143,9 +143,20 @@ public class LauncherIntent extends Intent {
                     + "EXTRA_LISTVIEW_LAYOUT_ID";
 
             /**
+             * SimpleRemoteViews instance to inflate the listview
+             */
+            public static final String EXTRA_LISTVIEW_REMOTEVIEWS = PNAME
+                    + "EXTRA_LISTVIEW_REMOTEVIEWS";
+
+            /**
              * The layout resource used to inflate an item in adapter
              */
             public static final String EXTRA_ITEM_LAYOUT_ID = PNAME + "EXTRA_ITEM_LAYOUT_ID";
+
+            /**
+             * BoundRemoteViews instance to inflate an item in adapter
+             */
+            public static final String EXTRA_ITEM_LAYOUT_REMOTEVIEWS = PNAME + "EXTRA_ITEM_LAYOUT_REMOTEVIEWS";
 
             /**
              * Listview id of a click item/view
@@ -213,6 +224,7 @@ public class LauncherIntent extends Intent {
 
         public static final String EXTRA_ERROR_MESSAGE = PNAME + "EXTRA_ERROR_MESSAGE";
 
+        public static final String EXTRA_API_VERSION = PNAME + "EXTRA_API_VERSION";
     }
 
 }
