@@ -19,7 +19,6 @@ package mobi.intuitit.android.widget;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
@@ -56,7 +55,7 @@ public class SimpleRemoteViews implements Parcelable {
     * An array of actions to perform on the view tree once it has been
     * inflated
     */
-   private ArrayList<Action> mActions;
+   protected ArrayList<Action> mActions;
    
 
    /**
@@ -264,12 +263,8 @@ public class SimpleRemoteViews implements Parcelable {
                        final Intent intent = new Intent();
                        intent.setSourceBounds(srcRect);
                        try {
-                           // TODO: Unregister this handler if PendingIntent.FLAG_ONE_SHOT?
-                           v.getContext().startIntentSender(
-                                   pendingIntent.getIntentSender(), intent,
-                                   Intent.FLAG_ACTIVITY_NEW_TASK,
-                                   Intent.FLAG_ACTIVITY_NEW_TASK, 0);
-                       } catch (IntentSender.SendIntentException e) {
+                       	pendingIntent.send(v.getContext(), 0, intent, null, null);
+                       } catch (PendingIntent.CanceledException e) {
                            android.util.Log.e("SetOnClickPendingIntent", "Cannot send pending intent: ", e);
                        }
                    }
@@ -899,13 +894,18 @@ public class SimpleRemoteViews implements Parcelable {
    }
 
    private void performApply(View v) {
-       if (mActions != null) {
-           final int count = mActions.size();
-           for (int i = 0; i < count; i++) {
-               Action a = mActions.get(i);
-               a.apply(v);
-           }
-       }
+	   try
+	   {
+	       if (mActions != null) {
+	           final int count = mActions.size();
+	           for (int i = 0; i < count; i++) {
+	               Action a = mActions.get(i);
+	               a.apply(v);
+	           }
+	       }
+	   } catch (OutOfMemoryError e) {
+           System.gc();
+	   }
    }
 
    
