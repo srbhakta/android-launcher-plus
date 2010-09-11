@@ -1233,17 +1233,19 @@ public final class Launcher extends Activity implements View.OnClickListener, On
             { 
                 Bundle metadata = getPackageManager().getReceiverInfo(appWidget.provider, 
                                                              PackageManager.GET_META_DATA).metaData; 
-                if (metadata.containsKey(LauncherMetadata.Requirements.APIVersion)) 
-                { 
-                        int requiredApiVersion = metadata.getInt(LauncherMetadata.Requirements.APIVersion); 
-                        if (requiredApiVersion > LauncherMetadata.CurrentAPIVersion) 
-                        { 
-                        	onActivityResult(REQUEST_CREATE_APPWIDGET, Activity.RESULT_CANCELED, data);
-                        	// Show a nice toast here to tell the user why the widget is rejected.
-                        	return;
-                        }
-                        // If there are Settings for scrollable or animations test them here too!
-                } 
+                if (metadata != null) {
+	                if (metadata.containsKey(LauncherMetadata.Requirements.APIVersion)) 
+	                { 
+	                        int requiredApiVersion = metadata.getInt(LauncherMetadata.Requirements.APIVersion); 
+	                        if (requiredApiVersion > LauncherMetadata.CurrentAPIVersion) 
+	                        { 
+	                        	onActivityResult(REQUEST_CREATE_APPWIDGET, Activity.RESULT_CANCELED, data);
+	                        	// Show a nice toast here to tell the user why the widget is rejected.
+	                        	return;
+	                        }
+	                        // If there are Settings for scrollable or animations test them here too!
+	                } 
+                }
             } 
             catch(PackageManager.NameNotFoundException expt) 
             { 
