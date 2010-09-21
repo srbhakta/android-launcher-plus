@@ -1396,4 +1396,7 @@ public class Workspace extends WidgetSpace implements DropTarget, DragSource, Dr
 	public void unbindWidgetScrollableViews() {
 		unbindWidgetScrollable();
 	}
+	public void unbindWidgetScrollableViewsForWidget(int widgetId) {
+		unbindWidgetScrollableId(widgetId);
+	}
 }
