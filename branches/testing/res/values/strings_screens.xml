@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<string name="group_screens">Screens</string>
+
+<string name="key_indicator_on">key_indicator_on</string>
+<string name="indicator_on_title">Keep indicator on</string>
+<string name="indicator_on_summary">Screen indicator always shown at the bottom</string>
+
+<string name="key_default_screen">key_default_screen</string>
+<string name="default_screen_title">Default screen</string>
+<string name="default_screen_summary">The default screen Home++ will start with</string>
+
+<string name="key_screen_number">key_screen_number</string>
+<string name="screen_number_title">Screen number</string>
+<string name="screen_number_summary">The number of screens in your workspace</string>
+
+<string name="cat_workspace">Workspace settings</string>
+
+<string name="donate_title">Donate</string>
+<string name="donate_summary">Offer your support</string>
+<string name="donate_address">http://sites.google.com/site/launcherplus/donations</string>
+
+<string name="hpp_ad_title">Try out Home plus plus</string>
+<string name="hpp_ad_summary">Home++ is a</string>
+
+<string name="starting_screen_switcher">Starting screen switcher</string>
+
+</resources>
