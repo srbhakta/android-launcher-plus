@@ -1,12 +1,19 @@
 package mobi.intuitit.android.widget;
 
 import mobi.intuitit.android.content.LauncherIntent;
+import mobi.intuitit.android.widget.WidgetListAdapter.ItemMapping;
+import mobi.intuitit.android.widget.WidgetListAdapter.RowElement;
+import mobi.intuitit.android.widget.WidgetListAdapter.RowElementsList;
+import android.content.AsyncQueryHandler;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,10 +24,12 @@ import android.view.ViewGroup;
  */
 public class WidgetRemoteViewsListAdapter extends ScrollableBaseAdapter {
 
+	static final String LOG_TAG = "LauncherPP_WRVLA";
+	private static final boolean LOGD = true;
     private BoundRemoteViews mRemoteViews = null;
     private final Context mContext;
     private Intent mIntent;
-
+    private MyQueryHandler mAsyncQuery;
     ComponentName mAppWidgetProvider;
 
     /**
@@ -43,14 +52,8 @@ public class WidgetRemoteViewsListAdapter extends ScrollableBaseAdapter {
         mIntent = intent;
 
         mRemoteViews = (BoundRemoteViews)intent.getParcelableExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_LAYOUT_REMOTEVIEWS);
-    	Cursor cursor = mContext.getContentResolver().query(Uri.parse(mIntent
-                .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)), mIntent
-                .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION), mIntent
-                .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION), mIntent
-                .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS),
-                mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
-    	mRemoteViews.setBindingCursor(cursor, mContext);
-        cursor.close();
+        mAsyncQuery=new MyQueryHandler(mContext.getContentResolver());
+        mHandler.post(mQueryDataRunnable);
     }
 
     public void updateFromIntent(Intent intent) {
@@ -60,13 +63,7 @@ public class WidgetRemoteViewsListAdapter extends ScrollableBaseAdapter {
     		}
     		mIntent = intent;
     		mRemoteViews = (BoundRemoteViews)intent.getParcelableExtra(LauncherIntent.Extra.Scroll.EXTRA_ITEM_LAYOUT_REMOTEVIEWS);
-        	Cursor cursor = mContext.getContentResolver().query(Uri.parse(mIntent
-                    .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)), mIntent
-                    .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION), mIntent
-                    .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION), mIntent
-                    .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS),
-                    mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
-        	mRemoteViews.setBindingCursor(cursor, mContext);
+            mHandler.post(mQueryDataRunnable);
     	}
     }
 
@@ -74,16 +71,14 @@ public class WidgetRemoteViewsListAdapter extends ScrollableBaseAdapter {
 	// Create runnable for posting
 	final Runnable mQueryDataRunnable = new Runnable() {
 		public void run() {
-	    	Cursor cursor = mContext.getContentResolver().query(Uri.parse(mIntent
-	                .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)), mIntent
-	                .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION), mIntent
-	                .getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION), mIntent
-	                .getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS),
-	                mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
-	    	mRemoteViews.setBindingCursor(cursor, mContext);
-	    	cursor.close();
-			System.gc();
-			notifyDataSetInvalidated();
+			if (LOGD)
+				Log.d(LOG_TAG,"API v1 START QUERY");
+			mAsyncQuery.startQuery(1, "cookie",
+					Uri.parse(mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_DATA_URI)) ,
+					mIntent.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_PROJECTION),
+					mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION),
+					mIntent.getStringArrayExtra(LauncherIntent.Extra.Scroll.EXTRA_SELECTION_ARGUMENTS),
+					mIntent.getStringExtra(LauncherIntent.Extra.Scroll.EXTRA_SORT_ORDER));
 		}
 	};
 
@@ -125,5 +120,29 @@ public class WidgetRemoteViewsListAdapter extends ScrollableBaseAdapter {
 
 	public void dropCache() {
 		mRemoteViews.dropCache();
+	}
+    /**
+     * AsyncQueryHandler helper class to do async queries
+     * instead of blocking the UI thread
+     * (yeah, don't know why but the runnable was not avoiding
+     * the UI lock
+     * @author adw
+     *
+     */
+	private class MyQueryHandler extends AsyncQueryHandler 
+	{
+		public MyQueryHandler(ContentResolver cr) {
+			super(cr);
+		}
+
+		protected void onQueryComplete(int token, Object cookie,
+				Cursor cursor) {
+			super.onQueryComplete(token, cookie, cursor);
+			if (LOGD)
+				Log.d(LOG_TAG,"API v1 START QUERY");
+			mRemoteViews.setBindingCursor(cursor, mContext);
+			cursor.close();
+			notifyDataSetInvalidated();
+		}
 	}
 }
