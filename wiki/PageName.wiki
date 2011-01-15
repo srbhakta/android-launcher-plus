@@ -21,6 +21,7 @@ The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 
 Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent with :
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with SimpleRemoteViews composed of pages datas
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with SimpleRemoteViews composed of pages datas
@@ -51,5 +52,3 @@ Then the widget should send a new ACTION_PAGE_SCROLL_WIDGET_ADD to provide the n
 User interactions with pages will use the same API than standard scrollable API : 
 - LauncherIntent.Action.ACTION_ITEM_CLICK and LauncherIntent.Action.ACTION_VIEW_CLICK
 - and PendingIntent of SimpleRemoteViews
-
-
