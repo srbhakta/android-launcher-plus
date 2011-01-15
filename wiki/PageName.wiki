@@ -1,0 +1,55 @@
+Page Scroll API (ViewFlipper)
+
+The goal is to introduce a ViewFlipper possiblity in the scrollable widget API.
+
+How could it work :
+
+= 1 - When the launcher is ready, it send ACTION_READY. =
+
+On this action, the widget should prepare the viewFlipper initialisation and provider datas for this viewFlipper.
+
+== 1.1 - Preparing ViewFlipper ==
+
+The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
+- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
+- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
+- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
+
+== 1.2 - Preparing page datas ==
+
+Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent with :
+- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with SimpleRemoteViews composed of pages datas
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with SimpleRemoteViews composed of pages datas
+
+== 1.3 - Handling in the launcher ==
+
+On ACTION_PAGE_SCROLL_WIDGET_START receive, the widget viewFlipper is created and initialized with animations settings, and a dummy loading page is set.
+A gestureDetector is created on the viewFlipper to detect UP/DOWN gestures.
+
+On ACTION_PAGE_SCROLL_WIDGET_ADD receive, the widget viewFlipper is loaded with a new page with inflated SimpleRemoteViews.
+
+
+= 2 - User interactions =
+
+== 2.1 - Gestures ==
+
+On user gesture, the new page is loaded by the launcher if the page is available in SimpleRemoteViews.
+If not, no animation and no page change.
+If the page is available, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE intent with :
+- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : the current page ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REQUESTTED_PAGE_ID : the requested page ID
+Then the widget should send a new ACTION_PAGE_SCROLL_WIDGET_ADD to provide the new viewFlipper page.
+
+== 2.2 - Clicks ==
+
+User interactions with pages will use the same API than standard scrollable API : 
+- LauncherIntent.Action.ACTION_ITEM_CLICK and LauncherIntent.Action.ACTION_VIEW_CLICK
+- and PendingIntent of SimpleRemoteViews
+
+
