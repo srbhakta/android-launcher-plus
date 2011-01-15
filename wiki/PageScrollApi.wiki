@@ -1,4 +1,4 @@
-Page Scroll API (ViewFlipper)
+#Page Scroll API (ViewFlipper)
 
 The goal is to introduce a ViewFlipper possiblity in the scrollable widget API.
 
@@ -14,7 +14,7 @@ On this action, the widget should prepare the viewFlipper initialisation and pro
 == 1.1 - Preparing ViewFlipper ==
 
 The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
-
+{{{
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
 
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
@@ -24,6 +24,7 @@ The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 - LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
 
 - LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
+}}}
 
 == 1.2 - Preparing page datas ==
 
