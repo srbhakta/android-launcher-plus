@@ -56,7 +56,7 @@ On user gesture, the new page is loaded by the launcher if the page is available
 
 If not, no animation and no page change.
 
-If the page is available, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE intent with :
+If the page is available and changed, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE intent to refill his cache, with :
 {{{
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
 
@@ -69,6 +69,7 @@ If the page is available, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_
 
 Then the widget should send a new ACTION_PAGE_SCROLL_WIDGET_ADD to provide the new viewFlipper page.
 
+The launcher need to take care about page cache limits and drop 'old' pages.
 
 == 2.2 - Clicks ==
 
