@@ -1,4 +1,4 @@
-#Page Scroll API (ViewFlipper)
+#summary Page Scroll API (ViewFlipper)
 
 The goal is to introduce a ViewFlipper possiblity in the scrollable widget API.
 
