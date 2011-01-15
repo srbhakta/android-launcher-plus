@@ -73,9 +73,4 @@ The launcher need to take care about page cache limits and drop 'old' pages.
 
 == 2.2 - Clicks ==
 
-User interactions with pages will use the same API than standard scrollable API : 
-{{{
-- LauncherIntent.Action.ACTION_ITEM_CLICK and LauncherIntent.Action.ACTION_VIEW_CLICK
-
-- and PendingIntent of SimpleRemoteViews
-}}}
+User interactions with pages will use PendingIntent of RemoteViews
