@@ -11,10 +11,15 @@ On this action, the widget should prepare the viewFlipper initialisation and pro
 == 1.1 - Preparing ViewFlipper ==
 
 The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
+
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+
 - LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
+
 - LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
+
 - LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
 
 == 1.2 - Preparing page datas ==
@@ -23,12 +28,16 @@ Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent wi
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
 
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with SimpleRemoteViews composed of pages datas
+
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with SimpleRemoteViews composed of pages datas
+
 
 == 1.3 - Handling in the launcher ==
 
 On ACTION_PAGE_SCROLL_WIDGET_START receive, the widget viewFlipper is created and initialized with animations settings, and a dummy loading page is set.
+
 A gestureDetector is created on the viewFlipper to detect UP/DOWN gestures.
 
 On ACTION_PAGE_SCROLL_WIDGET_ADD receive, the widget viewFlipper is loaded with a new page with inflated SimpleRemoteViews.
