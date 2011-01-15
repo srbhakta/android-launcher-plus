@@ -34,9 +34,9 @@ Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent wi
 
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with SimpleRemoteViews composed of pages datas
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with RemoteViews composed of pages datas
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with SimpleRemoteViews composed of pages datas
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with RemoteViews composed of pages datas
 }}}
 
 == 1.3 - Handling in the launcher ==
@@ -45,14 +45,14 @@ On ACTION_PAGE_SCROLL_WIDGET_START receive, the widget viewFlipper is created an
 
 A gestureDetector is created on the viewFlipper to detect UP/DOWN gestures.
 
-On ACTION_PAGE_SCROLL_WIDGET_ADD receive, the widget viewFlipper is loaded with a new page with inflated SimpleRemoteViews.
+On ACTION_PAGE_SCROLL_WIDGET_ADD receive, the widget viewFlipper is loaded with a new page with inflated RemoteViews.
 
 
 = 2 - User interactions =
 
 == 2.1 - Gestures ==
 
-On user gesture, the new page is loaded by the launcher if the page is available in SimpleRemoteViews.
+On user gesture, the new page is loaded by the launcher if the page is available in RemoteViews.
 
 If not, no animation and no page change.
 
