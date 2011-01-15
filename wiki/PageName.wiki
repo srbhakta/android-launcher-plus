@@ -4,7 +4,10 @@ The goal is to introduce a ViewFlipper possiblity in the scrollable widget API.
 
 How could it work :
 
-= 1 - When the launcher is ready, it send ACTION_READY. =
+
+= 1 - Page setup=
+
+When the launcher is ready, it send ACTION_READY.
 
 On this action, the widget should prepare the viewFlipper initialisation and provider datas for this viewFlipper.
 
