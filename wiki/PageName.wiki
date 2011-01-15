@@ -48,16 +48,26 @@ On ACTION_PAGE_SCROLL_WIDGET_ADD receive, the widget viewFlipper is loaded with 
 == 2.1 - Gestures ==
 
 On user gesture, the new page is loaded by the launcher if the page is available in SimpleRemoteViews.
+
 If not, no animation and no page change.
+
 If the page is available, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE intent with :
+
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : the current page ID
+
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REQUESTTED_PAGE_ID : the requested page ID
+
 Then the widget should send a new ACTION_PAGE_SCROLL_WIDGET_ADD to provide the new viewFlipper page.
+
 
 == 2.2 - Clicks ==
 
 User interactions with pages will use the same API than standard scrollable API : 
+
 - LauncherIntent.Action.ACTION_ITEM_CLICK and LauncherIntent.Action.ACTION_VIEW_CLICK
+
 - and PendingIntent of SimpleRemoteViews
