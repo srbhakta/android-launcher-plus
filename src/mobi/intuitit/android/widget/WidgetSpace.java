@@ -787,6 +787,7 @@ public abstract class WidgetSpace extends ViewGroup {
 
         IntentFilter flipperFilter = new IntentFilter();
         flipperFilter.addAction(LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_START);
+        flipperFilter.addAction(LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_ADD);
         context.registerReceiver(mViewFlipperProvider, flipperFilter);
     }
 
