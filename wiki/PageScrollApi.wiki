@@ -28,6 +28,10 @@ The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_CACHE_DEPTH (Integer) : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
 
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_WRAP_FIRST_LAST (Boolean): allow ViewFlipper to wrap from/to first/last page.
+
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS (RemoteViews[]) : with an array of RemoteViews composed of pages datas
+
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID (Integer) : ID of first page contained in the provided in the EXTRA_VIEW_FLIPPER_REMOTEVIEWS array
 }}}
 
 == 1.2 - Preparing page datas ==
