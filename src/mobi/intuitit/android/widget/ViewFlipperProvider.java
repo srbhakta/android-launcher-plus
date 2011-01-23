@@ -118,7 +118,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
             if (dummyView instanceof ViewFlipper)
             	info.flipper = (ViewFlipper) dummyView;
             else {
-            	final int flipperViewResId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEWFLIPPER_LAYOUT_ID, -1);
+            	final int flipperViewResId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
                 if (flipperViewResId <= 0) {
                 	info.flipper = new ViewFlipper(context);
                 	if (info.flipper != null)
@@ -138,7 +138,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
                 }
             }
 
-            Parcelable[] pages = intent.getParcelableArrayExtra(LauncherIntent.Extra.EXTRA_VIEWFLIPPER_PAGES);
+            Parcelable[] pages = intent.getParcelableArrayExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS);
             info.pages.clear();
             for(Parcelable page : pages) {
             	if (page instanceof RemoteViews)
@@ -164,6 +164,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
             e.printStackTrace();
             return e.getMessage();
         }
+        return null;
     }
 
 

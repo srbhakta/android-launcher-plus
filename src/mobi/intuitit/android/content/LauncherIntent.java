@@ -218,14 +218,16 @@ public class LauncherIntent extends Intent {
 
         }
 
-        /**
-         * The layout resource to be inflated
-         */
-        public static final String EXTRA_VIEWFLIPPER_LAYOUT_ID = PNAME
-                + "EXTRA_VIEWFLIPPER_LAYOUT_ID";
+        public static final class PageScroll {
+	        /**
+	         * The layout resource to be inflated
+	         */
+	        public static final String EXTRA_VIEW_FLIPPER_LAYOUT_ID = PNAME
+	                + "EXTRA_VIEW_FLIPPER_LAYOUT_ID";
 
-        public static final String EXTRA_VIEWFLIPPER_PAGES = PNAME
-        		+ "EXTRA_VIEWFLIPPER_PAGES";
+	        public static final String EXTRA_VIEW_FLIPPER_REMOTEVIEWS = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_REMOTEVIEWS";
+        }
 
         public static final String EXTRA_APPWIDGET_ID = PNAME + "EXTRA_APPWIDGET_ID";
         public static final String EXTRA_IMAGEVIEW_ID = PNAME + "EXTRA_IMAGEVIEW_ID";
