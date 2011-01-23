@@ -78,7 +78,7 @@ The launcher need to take care about page cache limits and drop 'old' pages.
 
 User interactions with pages will use PendingIntent of RemoteViews
 
-== 2.3 - Widget set page index ==
+== 2.3 - Widget request to display a specific page ==
 
 The widget can ask to display a specific page by sending a ACTION_PAGE_SCROLL_WIDGET_SET_PAGE intent with :
 {{{
