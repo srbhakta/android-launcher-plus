@@ -64,7 +64,6 @@ If the page is available and changed, the launcher send a ACTION_PAGE_SCROLL_WID
 
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : the current page ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REQUESTTED_PAGE_ID : the requested page ID
 }}}
 
 Then the widget should send a new ACTION_PAGE_SCROLL_WIDGET_ADD to provide the new viewFlipper page.
