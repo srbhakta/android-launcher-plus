@@ -214,6 +214,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
     	public SwipeGestureDetector(ViewFlipperInfo info) {
     		mInfo = info;
+    		addChild(LEFT);
     	}
 
 		// from:
@@ -257,8 +258,6 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 			}
 			return false;
 		}
-
-
 
 
 		private Animation animateInFrom(int fromDirection) {
