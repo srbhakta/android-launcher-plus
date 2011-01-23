@@ -3,6 +3,7 @@ package mobi.intuitit.android.widget;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import mobi.intuitit.android.content.LauncherIntent;
 import android.appwidget.AppWidgetHostView;
@@ -11,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -55,7 +57,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        Log.v(TAG, "onReceive action" + action);
+        logIntent(intent, true);
         int widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
         if (widgetId < 0)
             widgetId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_APPWIDGET_ID, -1);
@@ -82,6 +84,41 @@ public class ViewFlipperProvider extends BroadcastReceiver {
     	}
     	return mFlipperInfos.get(id);
     }
+
+
+    private void logIntent(Intent intent, boolean extended) {
+        if (extended)
+                Log.d(TAG, "------------Log Intent------------");
+        Log.d(TAG, "Action       : " + intent.getAction());
+        if (!extended)
+                return;
+        Log.d(TAG, "Data         : " + intent.getDataString());
+        //Log.d(TAG, "Component    : " + intent.getComponent().toString());
+        Log.d(TAG, "Package      : " + intent.getPackage());
+        Log.d(TAG, "Flags        : " + intent.getFlags());
+        Log.d(TAG, "Scheme       : " + intent.getScheme());
+        Log.d(TAG, "SourceBounds : " + intent.getSourceBounds());
+        Log.d(TAG, "Type         : " + intent.getType());
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+                Log.d(TAG, "--Extras--");
+
+                for(String key : extras.keySet()) {
+                        Log.d(TAG, key + " --> " + extras.get(key));
+                }
+                Log.d(TAG, "----------");
+        }
+        Set<String> cats = intent.getCategories();
+        if (cats != null) {
+                Log.d(TAG, "--Categories--");
+                for(String cat : cats) {
+                        Log.d(TAG, " --> " + cat);
+                }
+                Log.d(TAG, "--------------");
+        }
+        Log.d(TAG, "----------------------------------");
+}
+
 
     private ViewFlipperInfo getFlipperInfo(int appWidgetId, int viewId) {
     	HashMap<Integer, ViewFlipperInfo> info = getFlipperInfos(appWidgetId);
@@ -118,7 +155,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
             if (dummyView instanceof ViewFlipper)
             	info.flipper = (ViewFlipper) dummyView;
             else {
-            	final int flipperViewResId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
+            	final int flipperViewResId = intent.getIntExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_LAYOUT_ID, -1);
                 if (flipperViewResId <= 0) {
                 	info.flipper = new ViewFlipper(context);
                 	if (info.flipper != null)
