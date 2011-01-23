@@ -5,14 +5,14 @@ import android.content.Intent;
 public class LauncherIntent extends Intent {
 
     /**
-     * 
+     *
      */
     public static final String PNAME = "mobi.intuitit.android.hpp.";
 
     /**
-     * 
+     *
      * @author bo
-     * 
+     *
      */
     public static final class Broadcast {
 
@@ -22,9 +22,9 @@ public class LauncherIntent extends Intent {
     }
 
     /**
-     * 
+     *
      * @author bo
-     * 
+     *
      */
     public static final class Notification {
 
@@ -49,9 +49,9 @@ public class LauncherIntent extends Intent {
     }
 
     /**
-     * 
+     *
      * @author bo
-     * 
+     *
      */
     public static final class Action {
 
@@ -77,12 +77,15 @@ public class LauncherIntent extends Intent {
         		+ "ACTION_SCROLL_WIDGET_CLOSE";
         public static final String ACTION_SCROLL_WIDGET_CLEAR_IMAGE_CACHE = PNAME
 				+ "ACTION_SCROLL_WIDGET_CLEAR_IMAGE_CACHE";
+
+        public static final String ACTION_PAGE_SCROLL_WIDGET_START = PNAME
+        		+ "ACTION_PAGE_SCROLL_WIDGET_START";
     }
 
     /**
-     * 
+     *
      * @author bo
-     * 
+     *
      */
     public static final class Error {
 
@@ -94,9 +97,9 @@ public class LauncherIntent extends Intent {
     }
 
     /**
-     * 
+     *
      * @author bo
-     * 
+     *
      */
     public static final class Extra {
 
@@ -111,13 +114,13 @@ public class LauncherIntent extends Intent {
              *   pass -1 to don't force the position
              */
             public static final String EXTRA_LISTVIEW_POSITION = PNAME + "EXTRA_LISTVIEW_POSITION";
-            
+
             /**
-             * Allow or not contentProvider requery 
+             * Allow or not contentProvider requery
              * - disable requery for simple MatrixCursor (not handled by Android)
-             * - enable requery for SQL database Cursor 
+             * - enable requery for SQL database Cursor
              */
-            public static final String EXTRA_DATA_PROVIDER_ALLOW_REQUERY = PNAME 
+            public static final String EXTRA_DATA_PROVIDER_ALLOW_REQUERY = PNAME
             		+ "EXTRA_DATA_PROVIDER_ALLOW_REQUERY";
 
             /**
@@ -169,7 +172,7 @@ public class LauncherIntent extends Intent {
              *   this data is sent with the ACTION_ITEM_CLICK and ACTION_VIEW_CLICK
              */
             public static final String EXTRA_ITEM_POS = PNAME + "EXTRA_ITEM_POS";
-            			
+
             /**
              * The position of an clicked item in the on the screen
              *   this data is sent with the ACTION_VIEW_CLICK
@@ -178,7 +181,7 @@ public class LauncherIntent extends Intent {
 
             /**
              * The uri for onItemClickListener
-             *   this data is used to get an cursor data at this position 
+             *   this data is used to get an cursor data at this position
              *   this cursor data is sent with the ACTION_ITEM_CLICK and ACTION_VIEW_CLICK
              */
             public static final String EXTRA_ITEM_ACTION_VIEW_URI_INDEX = PNAME
@@ -186,9 +189,9 @@ public class LauncherIntent extends Intent {
 
             /**
              * Mapping views to cursor indices
-             * 
+             *
              * @author Bo
-             * 
+             *
              */
             public static final class Mapping {
                 public static final String EXTRA_VIEW_TYPES = PNAME + "EXTRA_VIEW_TYPES";
@@ -200,9 +203,9 @@ public class LauncherIntent extends Intent {
 
             /**
              * View types used in mapping, button could use TEXTVIEW
-             * 
+             *
              * @author Bo
-             * 
+             *
              */
             public static final class Types {
                 public static final int VIEW = 99;
@@ -214,7 +217,14 @@ public class LauncherIntent extends Intent {
             }
 
         }
-        
+
+        /**
+         * The layout resource to be inflated
+         */
+        public static final String EXTRA_VIEWFLIPPER_LAYOUT_ID = PNAME
+                + "EXTRA_VIEWFLIPPER_LAYOUT_ID";
+
+
         public static final String EXTRA_APPWIDGET_ID = PNAME + "EXTRA_APPWIDGET_ID";
         public static final String EXTRA_IMAGEVIEW_ID = PNAME + "EXTRA_IMAGEVIEW_ID";
         public static final String EXTRA_ANIMATION_ID = PNAME + "EXTRA_ANIMATION_ID";

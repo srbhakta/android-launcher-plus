@@ -329,6 +329,8 @@ public abstract class WidgetSpace extends ViewGroup {
 
     ScrollViewProvider mScrollViewProvider = new ScrollViewProvider();
 
+    ViewFlipperProvider mViewFlipperProvider = new ViewFlipperProvider(this);
+
     // listview informations storage for each provider data Uri
     class ScrollViewInfos {
         AbsListView lv = null;
@@ -730,32 +732,6 @@ public abstract class WidgetSpace extends ViewGroup {
                 return null;
         }
 
-        /**
-         *
-         * @param vg
-         * @param id
-         * @param replacement
-         * @return
-         */
-        boolean replaceView(ViewGroup vg, int id, View replacement) {
-            View child;
-            boolean result = false;
-            for (int i = vg.getChildCount() - 1; i >= 0; i--) {
-                child = vg.getChildAt(i);
-                if (child.getId() == id) {
-                    // Remove the dummy
-                    vg.removeView(child);
-                    // Set the replacement id to be the old one
-                    replacement.setId(id);
-                    // Put the replacement in
-                    vg.addView(replacement, i, child.getLayoutParams());
-                    return true;
-                } else if (child instanceof ViewGroup)
-                    result |= replaceView((ViewGroup) child, id, replacement);
-            }
-            return result;
-        }
-
         public void onScroll(AbsListView arg0, int arg1, int arg2, int arg3) {
         }
 
@@ -763,6 +739,32 @@ public abstract class WidgetSpace extends ViewGroup {
             mAllowLongPress = scrollState == SCROLL_STATE_IDLE;
         }
     }
+
+    /**
+    *
+    * @param vg
+    * @param id
+    * @param replacement
+    * @return
+    */
+   boolean replaceView(ViewGroup vg, int id, View replacement) {
+       View child;
+       boolean result = false;
+       for (int i = vg.getChildCount() - 1; i >= 0; i--) {
+           child = vg.getChildAt(i);
+           if (child.getId() == id) {
+               // Remove the dummy
+               vg.removeView(child);
+               // Set the replacement id to be the old one
+               replacement.setId(id);
+               // Put the replacement in
+               vg.addView(replacement, i, child.getLayoutParams());
+               return true;
+           } else if (child instanceof ViewGroup)
+               result |= replaceView((ViewGroup) child, id, replacement);
+       }
+       return result;
+   }
 
     /**
      * Register receivers given by this workspace
@@ -782,6 +784,10 @@ public abstract class WidgetSpace extends ViewGroup {
         scrollFilter.addAction(LauncherIntent.Action.ACTION_SCROLL_WIDGET_CLEAR_IMAGE_CACHE);
         scrollFilter.addAction(LauncherIntent.Action.ACTION_SCROLL_WIDGET_SELECT_ITEM);
         context.registerReceiver(mScrollViewProvider, scrollFilter);
+
+        IntentFilter flipperFilter = new IntentFilter();
+        flipperFilter.addAction(LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_START);
+        context.registerReceiver(mViewFlipperProvider, flipperFilter);
     }
 
     /**
@@ -791,6 +797,7 @@ public abstract class WidgetSpace extends ViewGroup {
         final Context context = getContext();
         unregisterReceiver(context, mAnimationProvider);
         unregisterReceiver(context, mScrollViewProvider);
+        unregisterReceiver(context, mViewFlipperProvider);
     }
 
     /**
