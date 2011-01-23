@@ -15,32 +15,32 @@ On this action, the widget should prepare the viewFlipper initialisation and pro
 
 The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 {{{
-- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- AppWidgetManager.EXTRA_APPWIDGET_ID (Integer) : the widget ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_ID : the dummy view ID of the main widget view to replace by the FlipView
+- LauncherIntent.Extra.EXTRA_VIEW_ID (Integer) : the dummy view ID of the main widget view to replace by the FlipView
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_LAYOUT_ID : the ViewFlipper layout ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_LAYOUT_ID (Integer) : the ViewFlipper layout ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE (Integer) : alpha, translation left/right or translation up/down
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION (Long) : in milliseconds
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_CACHE_DEPTH (Integer) : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_WRAP_FIRST_LAST (boolean): allow ViewFlipper to wrap from/to first/last page.
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_WRAP_FIRST_LAST (Boolean): allow ViewFlipper to wrap from/to first/last page.
 }}}
 
 == 1.2 - Preparing page datas ==
 
 Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent with :
 {{{
-- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- AppWidgetManager.EXTRA_APPWIDGET_ID (Integer) : the widget ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID (Integer) : the viewFlipper ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with an array of RemoteViews composed of pages datas
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS (RemoteViews[]) : with an array of RemoteViews composed of pages datas
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : ID of first page contained in the provided in the EXTRA_VIEW_FLIPPER_REMOTEVIEWS array
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID (Integer) : ID of first page contained in the provided in the EXTRA_VIEW_FLIPPER_REMOTEVIEWS array
 }}}
 
 == 1.3 - Handling in the launcher ==
@@ -62,11 +62,11 @@ If not, no animation and no page change.
 
 If the page is available and changed, the launcher send a ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE intent to refill his cache, with :
 {{{
-- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- AppWidgetManager.EXTRA_APPWIDGET_ID (Integer) : the widget ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID (Integer) : the viewFlipper ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : the current page ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID (Integer) : the current page ID
 
 }}}
 
@@ -82,9 +82,9 @@ User interactions with pages will use PendingIntent of RemoteViews
 
 The widget can ask to display a specific page by sending a ACTION_PAGE_SCROLL_WIDGET_SET_PAGE intent with :
 {{{
-- AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
+- AppWidgetManager.EXTRA_APPWIDGET_ID (Integer) : the widget ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
+- LauncherIntent.Extra.EXTRA_VIEW_ID (Integer) : the viewFlipper ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : page ID to display
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID (Integer) : page ID to display
 }}}
