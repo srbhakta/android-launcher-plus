@@ -460,8 +460,10 @@ public abstract class WidgetSpace extends ViewGroup {
 
             String error = "unknow action";
             if (TextUtils.equals(action, LauncherIntent.Action.ACTION_SCROLL_WIDGET_START)) {
-                error = makeScrollable(context, intent, widgetView);
-
+            	 // Drop the old stuff first!
+                error = releaseScrollable(context, intent, widgetView);
+                if (error == null)
+                    error = makeScrollable(context, intent, widgetView);
             } else if (TextUtils.equals(action,
                     LauncherIntent.Action.ACTION_SCROLL_WIDGET_SELECT_ITEM)) {
                 error = setSelection(context, intent, widgetView);
