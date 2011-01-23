@@ -17,9 +17,9 @@ The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 {{{
 - AppWidgetManager.EXTRA_APPWIDGET_ID : the widget ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_ID : the dummy view ID to replace by the FlipView
+- LauncherIntent.Extra.EXTRA_VIEW_ID : the dummy view ID of the main widget view to replace by the FlipView
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_LAYOUT_ID : the viewFlipper layout ID
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_LAYOUT_ID : the ViewFlipper layout ID
 
 - LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
 
