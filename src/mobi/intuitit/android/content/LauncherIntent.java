@@ -78,8 +78,13 @@ public class LauncherIntent extends Intent {
         public static final String ACTION_SCROLL_WIDGET_CLEAR_IMAGE_CACHE = PNAME
 				+ "ACTION_SCROLL_WIDGET_CLEAR_IMAGE_CACHE";
 
+
         public static final String ACTION_PAGE_SCROLL_WIDGET_START = PNAME
         		+ "ACTION_PAGE_SCROLL_WIDGET_START";
+        public static final String ACTION_PAGE_SCROLL_WIDGET_ADD = PNAME
+        		+ "ACTION_PAGE_SCROLL_WIDGET_ADD";
+        public static final String ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE = PNAME
+        		+ "ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE";
     }
 
     /**
@@ -227,7 +232,28 @@ public class LauncherIntent extends Intent {
 
 	        public static final String EXTRA_VIEW_FLIPPER_REMOTEVIEWS = PNAME
 	        		+ "EXTRA_VIEW_FLIPPER_REMOTEVIEWS";
+
+	        public static final String EXTRA_VIEW_FLIPPER_ANIMATION_DURATION = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_ANIMATION_DURATION";
+
+	        public static final String EXTRA_VIEW_FLIPPER_ANIMATION_TYPE = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_ANIMATION_TYPE";
+
+	        public static final String EXTRA_VIEW_FLIPPER_CACHE_DEPTH = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_CACHE_DEPTH";
+
+	        public static final String EXTRA_VIEW_FLIPPER_WRAP_FIRST_LAST = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_WRAP_FIRST_LAST";
+
+	        public static final String EXTRA_VIEW_FLIPPER_PAGE_ID = PNAME
+	        		+ "EXTRA_VIEW_FLIPPER_PAGE_ID";
+
+
+	        public static final int EXTRA_VIEW_FLIPPER_ANIMATION_TYPE_TRANSLATE_UP_DOWN = 0;
+	        public static final int EXTRA_VIEW_FLIPPER_ANIMATION_TYPE_TRANSLATE_LEFT_RIGHT = 1;
+	        public static final int EXTRA_VIEW_FLIPPER_ANIMATION_TYPE_ALPHA = 2;
         }
+
 
         public static final String EXTRA_APPWIDGET_ID = PNAME + "EXTRA_APPWIDGET_ID";
         public static final String EXTRA_IMAGEVIEW_ID = PNAME + "EXTRA_IMAGEVIEW_ID";

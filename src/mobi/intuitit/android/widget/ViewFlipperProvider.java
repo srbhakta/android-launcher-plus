@@ -149,6 +149,8 @@ public class ViewFlipperProvider extends BroadcastReceiver {
             if (info.gesturedetector == null) {
             	info.gesturedetector = new SwipeGestureDetector(info);
             }
+            info.gesturedetector.animationtime =
+            	intent.getLongExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION, 250);
             final GestureDetector gd = new GestureDetector(info.gesturedetector);
 
             info.flipper.setOnTouchListener(new OnTouchListener() {
@@ -186,6 +188,8 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
 		private static final int LEFT = 0;
 		private static final int RIGHT = 1;
+
+		public long animationtime = 250;
 
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -235,7 +239,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 				break;
 			}
 
-			inFrom.setDuration(250);
+			inFrom.setDuration(animationtime);
 			inFrom.setInterpolator(new AccelerateInterpolator());
 			return inFrom;
 		}
@@ -255,7 +259,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 				break;
 			}
 
-			outTo.setDuration(250);
+			outTo.setDuration(animationtime);
 			outTo.setInterpolator(new AccelerateInterpolator());
 			return outTo;
 		}
