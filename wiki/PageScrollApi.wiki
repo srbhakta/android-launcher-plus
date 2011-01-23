@@ -19,11 +19,11 @@ The widget send a ACTION_PAGE_SCROLL_WIDGET_START intent with :
 
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
 
-- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_TYPE : alpha, translation left/right or translation up/down
 
-- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION : in milliseconds
 
-- LauncherIntent.Extra.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_CACHE_DEPTH : how much pages must be stored in the launcher (from 1 to 3 pages in each direction).
 }}}
 
 == 1.2 - Preparing page datas ==
