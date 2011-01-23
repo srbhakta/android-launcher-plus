@@ -11,11 +11,14 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Parcelable;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.View.OnTouchListener;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -33,6 +36,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 		public int flipPosition;
 
 		public List<RemoteViews> pages;
+		public SwipeGestureDetector gesturedetector;
 
 		private final int mCacheSize = 3;
 		public ViewFlipperInfo() {
@@ -134,15 +138,33 @@ public class ViewFlipperProvider extends BroadcastReceiver {
                 }
             }
 
+            Parcelable[] pages = intent.getParcelableArrayExtra(LauncherIntent.Extra.EXTRA_VIEWFLIPPER_PAGES);
+            info.pages.clear();
+            for(Parcelable page : pages) {
+            	if (page instanceof RemoteViews)
+            		info.pages.add((RemoteViews)page);
+            	else
+            		return "Viewflipper page is no RemoteViews";
+            }
+            if (info.gesturedetector == null) {
+            	info.gesturedetector = new SwipeGestureDetector(info);
+            }
+            final GestureDetector gd = new GestureDetector(info.gesturedetector);
+
+            info.flipper.setOnTouchListener(new OnTouchListener() {
+
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					gd.onTouchEvent(event);
+					return false;
+				}
+			});
 
         } catch (Exception e) {
             e.printStackTrace();
             return e.getMessage();
         }
     }
-
-
-
 
 
 
