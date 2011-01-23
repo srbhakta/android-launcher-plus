@@ -34,10 +34,10 @@ Each view flipper page will be send in a ACTION_PAGE_SCROLL_WIDGET_ADD intent wi
 
 - LauncherIntent.Extra.EXTRA_VIEW_ID : the viewFlipper ID
 
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with RemoteViews composed of pages datas
-
-- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with RemoteViews composed of pages datas
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS : with an array of RemoteViews composed of pages datas
 }}}
+
+- LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID : with RemoteViews composed of pages datas the first ID of page provided in the array
 
 == 1.3 - Handling in the launcher ==
 
