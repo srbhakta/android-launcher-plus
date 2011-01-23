@@ -195,7 +195,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					gd.onTouchEvent(event);
-					return false;
+					return true;
 				}
 			});
 
@@ -231,11 +231,17 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+			Log.d(TAG, "onFling!");
 			try {
-				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
+					Log.d(TAG, " * exit1");
 					return false;
-				if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+				}
+				Log.d(TAG, "e1:"+e1.getY());
+				Log.d(TAG, "e2:"+e2.getY());
 
+				if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+					Log.d(TAG, " * fling right");
 					mInfo.flipPosition++;
 					addChild(RIGHT);
 
@@ -243,9 +249,9 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 					mInfo.flipper.setInAnimation(animateInFrom(RIGHT));
 					mInfo.flipper.setOutAnimation(animateOutTo(LEFT));
 					mInfo.flipper.showNext();
-				} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+				} else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
 					// left to right swipe
-
+					Log.d(TAG, " * fling left");
 					mInfo.flipPosition--;
 					addChild(LEFT);
 
