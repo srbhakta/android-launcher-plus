@@ -26,7 +26,7 @@ scrollable API version : unknow
 
 ==Launcher Pro==
 
-scrollable API version : 1
+scrollable API version : 1, no more maintained
 
 ==Go Launcher==
 
@@ -35,4 +35,3 @@ scrollable API version : 2
 ==Zeam Launcher==
 
 scrollable API version : 2
-
