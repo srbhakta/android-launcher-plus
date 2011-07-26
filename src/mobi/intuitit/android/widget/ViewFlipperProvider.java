@@ -2,6 +2,7 @@ package mobi.intuitit.android.widget;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,22 +33,54 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 	private static final String TAG = "ViewFlipperProvider";
 
 	private final WidgetSpace mWidgetSpace;
+	private static final int mCacheSize = 3;
 
 	class ViewFlipperInfo {
 		public ViewFlipper flipper;
-		public int flipPosition;
-
-		public List<RemoteViews> pages;
+		private int flipPosition;
+		public boolean wrapFirstLast;
+		
+		public HashMap<Integer, RemoteViews> pages;
 		public SwipeGestureDetector gesturedetector;
 
-		private final int mCacheSize = 3;
+		
 		public ViewFlipperInfo() {
-			pages = new ArrayList<RemoteViews>(mCacheSize);
+			pages = new HashMap<Integer, RemoteViews>();
+		}
+		
+		public int getFlipPosition() {
+			return flipPosition;
+		}
+		
+		public boolean flipRight() {
+			flipPosition++;
+			if (flipPosition >= pages.size()) {
+				if (wrapFirstLast)
+					flipPosition = 0;
+				else {
+					flipPosition = pages.size() - 1;
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		public boolean flipLeft() {
+			flipPosition--;
+			if (flipPosition < 0) {
+				if (wrapFirstLast) 
+					flipPosition = pages.size() -1;
+				else {
+					flipPosition = 0;
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 
-	private final HashMap<Integer, HashMap<Integer, ViewFlipperInfo>> mFlipperInfos
-	= new HashMap<Integer, HashMap<Integer, ViewFlipperInfo>>();
+	private final HashMap<Integer, ViewFlipperInfo> mFlipperInfos
+			= new HashMap<Integer, ViewFlipperInfo>();
 
 	public ViewFlipperProvider(WidgetSpace widgetSpace) {
 		mWidgetSpace = widgetSpace;
@@ -73,14 +106,18 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
         if (LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_START.equals(action))
         	prepareViewFlipper(widgetId, widgetView, intent);
+        else if (LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_ADD.equals(action))
+        	addPages(widgetId, intent);
     }
 
+    private void addPages(int widgetId, Intent intent) {
+    	
+    }
 
-    private HashMap<Integer, ViewFlipperInfo> getFlipperInfos(int appWidgetId) {
+    private ViewFlipperInfo getFlipperInfo(int appWidgetId) {
     	Integer id = new Integer(appWidgetId);
     	if (!mFlipperInfos.containsKey(id)) {
-    		HashMap<Integer, ViewFlipperInfo> info = new HashMap<Integer, ViewFlipperInfo>();
-    		mFlipperInfos.put(id, info);
+    		mFlipperInfos.put(id, new ViewFlipperInfo());
     	}
     	return mFlipperInfos.get(id);
     }
@@ -120,16 +157,6 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 }
 
 
-    private ViewFlipperInfo getFlipperInfo(int appWidgetId, int viewId) {
-    	HashMap<Integer, ViewFlipperInfo> info = getFlipperInfos(appWidgetId);
-    	Integer id = new Integer(viewId);
-    	if (!info.containsKey(id)) {
-    		ViewFlipperInfo result = new ViewFlipperInfo(); // TODO  get from intent here!
-    		info.put(id, result);
-    	}
-    	return info.get(id);
-    }
-
     private String prepareViewFlipper(int appWidgetId, AppWidgetHostView view, Intent intent) {
     	final int dummyViewId = intent.getIntExtra(LauncherIntent.Extra.EXTRA_VIEW_ID, -1);
 
@@ -150,7 +177,7 @@ public class ViewFlipperProvider extends BroadcastReceiver {
             if (dummyView == null)
                 return "Invalid EXTRA_VIEW_ID";
 
-            ViewFlipperInfo info = getFlipperInfo(appWidgetId, dummyViewId);
+            ViewFlipperInfo info = getFlipperInfo(appWidgetId);
 
             if (dummyView instanceof ViewFlipper)
             	info.flipper = (ViewFlipper) dummyView;
@@ -177,21 +204,21 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
             Parcelable[] pages = intent.getParcelableArrayExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_REMOTEVIEWS);
             info.pages.clear();
+            int curPageID = intent.getIntExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID, 0);
             for(Parcelable page : pages) {
             	if (page instanceof RemoteViews)
-            		info.pages.add((RemoteViews)page);
+            		info.pages.put(new Integer(curPageID++), (RemoteViews)page);
             	else
             		return "Viewflipper page is no RemoteViews";
             }
             if (info.gesturedetector == null) {
-            	info.gesturedetector = new SwipeGestureDetector(info);
+            	info.gesturedetector = new SwipeGestureDetector(appWidgetId, info);
             }
             info.gesturedetector.animationtime =
             	intent.getLongExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_ANIMATION_DURATION, 250);
             final GestureDetector gd = new GestureDetector(info.gesturedetector);
 
             info.flipper.setOnTouchListener(new OnTouchListener() {
-
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					gd.onTouchEvent(event);
@@ -211,9 +238,11 @@ public class ViewFlipperProvider extends BroadcastReceiver {
     class SwipeGestureDetector extends SimpleOnGestureListener {
 
     	private final ViewFlipperInfo mInfo;
+    	private final int mAppWidgetId;
 
-    	public SwipeGestureDetector(ViewFlipperInfo info) {
+    	public SwipeGestureDetector(int appWidgetId, ViewFlipperInfo info) {
     		mInfo = info;
+    		mAppWidgetId = appWidgetId;
     		addChild(LEFT);
     	}
 
@@ -239,20 +268,22 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 				}
 				Log.d(TAG, "e1:"+e1.getY());
 				Log.d(TAG, "e2:"+e2.getY());
-
-				if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+				if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
 					Log.d(TAG, " * fling right");
-					mInfo.flipPosition++;
+					if (!mInfo.flipRight())
+						return false;
+					
 					addChild(RIGHT);
 
 					// right to left swipe
 					mInfo.flipper.setInAnimation(animateInFrom(RIGHT));
 					mInfo.flipper.setOutAnimation(animateOutTo(LEFT));
 					mInfo.flipper.showNext();
-				} else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+				} else if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
 					// left to right swipe
 					Log.d(TAG, " * fling left");
-					mInfo.flipPosition--;
+					if (!mInfo.flipLeft())
+						return false;
 					addChild(LEFT);
 
 					mInfo.flipper.setInAnimation(animateInFrom(LEFT));
@@ -315,9 +346,26 @@ public class ViewFlipperProvider extends BroadcastReceiver {
 
 
 
-
 		private View getView() {
-			RemoteViews views = mInfo.pages.get(mInfo.flipPosition);
+			int fp = mInfo.getFlipPosition();
+			RemoteViews views = mInfo.pages.get(fp);
+			LinkedList<Integer> missingPages = new LinkedList<Integer>(); 
+			
+			for (int i = fp - mCacheSize; i <= fp + mCacheSize; i++) {
+				Integer id = new Integer(i);
+				if (!mInfo.pages.containsKey(id)) {
+					missingPages.add(id);
+				}
+			}
+			
+			if (missingPages.size() > 0) {
+				for(Integer ID : missingPages) {
+					mWidgetSpace.getContext().sendBroadcast(new Intent(LauncherIntent.Action.ACTION_PAGE_SCROLL_WIDGET_REQUEST_PAGE)
+					.putExtra(LauncherIntent.Extra.EXTRA_APPWIDGET_ID, mAppWidgetId)
+					.putExtra(LauncherIntent.Extra.PageScroll.EXTRA_VIEW_FLIPPER_PAGE_ID, ID.intValue()));				
+				}
+			}
+			
 			return views.apply(mWidgetSpace.getContext(), mInfo.flipper);
 		}
 
