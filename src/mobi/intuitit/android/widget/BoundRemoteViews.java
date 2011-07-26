@@ -15,6 +15,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.text.Html;
 
 public class BoundRemoteViews extends SimpleRemoteViews {
 
@@ -155,6 +156,8 @@ public class BoundRemoteViews extends SimpleRemoteViews {
 					case BITMAP:
 						byte[] blob = cursor.getBlob(mCursorIndex);
 		                return BitmapFactory.decodeByteArray(blob, 0, blob.length);
+					case SPANNED:
+						return Html.fromHtml(cursor.getString(mCursorIndex));
 				}
 			}
 			catch(Exception e) {
@@ -170,6 +173,8 @@ public class BoundRemoteViews extends SimpleRemoteViews {
 					case STRING:
 					case CHAR_SEQUENCE:
 						return context.getString(mDefaultResource);
+					case SPANNED:
+						return Html.fromHtml(context.getString(mDefaultResource));
 					case BITMAP:
 						return BitmapFactory.decodeResource(context.getResources(), mDefaultResource);
 				}
@@ -330,6 +335,11 @@ public class BoundRemoteViews extends SimpleRemoteViews {
 
     public void setBoundCharSequence(int viewId, String methodName, int cursorIndex, int defaultResource) {
     	addAction(new BindingAction(viewId, methodName, ReflectionAction.CHAR_SEQUENCE,
+    								cursorIndex, defaultResource));
+    }
+    
+    public void setBoundSpanned(int viewId, String methodName, int cursorIndex, int defaultResource) {
+    	addAction(new BindingAction(viewId, methodName, ReflectionAction.SPANNED, 
     								cursorIndex, defaultResource));
     }
 

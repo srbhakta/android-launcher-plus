@@ -27,6 +27,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.Html;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -298,6 +300,7 @@ public class SimpleRemoteViews implements Parcelable {
        static final int URI = 11;
        static final int BITMAP = 12;
        static final int BUNDLE = 13;
+       static final int SPANNED = 14;
 
        int viewId;
        String methodName;
@@ -363,6 +366,9 @@ public class SimpleRemoteViews implements Parcelable {
                case BUNDLE:
                    this.value = in.readBundle();
                    break;
+               case SPANNED:
+                   this.value = Html.fromHtml(in.readString());
+                   break;
                default:
                    break;
            }
@@ -421,6 +427,9 @@ public class SimpleRemoteViews implements Parcelable {
                case BUNDLE:
                    out.writeBundle((Bundle) this.value);
                    break;
+               case SPANNED:
+                   out.writeString(Html.toHtml((Spanned)this.value));
+                   break;
                default:
                    break;
            }
@@ -455,12 +464,14 @@ public class SimpleRemoteViews implements Parcelable {
                    return Bitmap.class;
                case BUNDLE:
                    return Bundle.class;
+               case SPANNED:
+                   return Spanned.class;
                default:
                    return null;
            }
        }
 
-       @SuppressWarnings("unchecked")
+       @SuppressWarnings({ "rawtypes" })
        @Override
        public void apply(View root) {
            final View view = root.findViewById(viewId);
@@ -474,14 +485,44 @@ public class SimpleRemoteViews implements Parcelable {
            }
 
            Class klass = view.getClass();
-           Method method;
+           Class paramTyp = getParameterType();
+
+           Method method = null;
            try {
-               method = klass.getMethod(this.methodName, getParameterType());
+        	   method = klass.getMethod(this.methodName, paramTyp);
            }
-           catch (NoSuchMethodException ex) {
-               throw new ActionException("view: " + klass.getName() + " doesn't have method: "
-                       + this.methodName + "(" + param.getName() + ")");
+           catch (NoSuchMethodException ex) {               
            }
+           
+           if (method == null) {
+               for(Class interf : paramTyp.getInterfaces()) {
+                   try {
+                       method = klass.getMethod(this.methodName, interf);
+                   }
+                   catch (NoSuchMethodException ex) {
+                   }
+                   if (method != null)
+                        break;
+               }
+           }
+         
+           if (method == null) {
+                paramTyp = paramTyp.getSuperclass();
+                while (paramTyp != null) {
+                   try {
+                       method = klass.getMethod(this.methodName, paramTyp);
+                   }
+                   catch (NoSuchMethodException ex) {
+                   }
+                   if (method != null)
+                        break;
+                    paramTyp = paramTyp.getSuperclass();
+                }
+           }
+         
+           if (method == null)
+                throw new ActionException("view: " + klass.getName() + " doesn't have method: "
+                		+ this.methodName + "(" + param.getName() + ")");
 
            try {
         	   method.invoke(view, getValue(root.getContext()));
@@ -803,6 +844,18 @@ public class SimpleRemoteViews implements Parcelable {
     */
    public void setString(int viewId, String methodName, String value) {
        addAction(new ReflectionAction(viewId, methodName, ReflectionAction.STRING, value));
+   }
+   
+   
+   /**
+    * Call a method taking one Spanned on a view in the layout for this RemoteViews.
+    *
+    * @param viewId The id of the view whose text should change
+    * @param methodName The name of the method to call.
+    * @param value The value to pass to the method.
+    */
+   public void setString(int viewId, String methodName, Spanned value) {
+       addAction(new ReflectionAction(viewId, methodName, ReflectionAction.SPANNED, value));
    }
 
    /**
