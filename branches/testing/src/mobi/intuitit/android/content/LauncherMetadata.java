@@ -5,7 +5,7 @@ public final class LauncherMetadata {
 	/*
 	 * Contains the current "Android AppWidget Extension API Version" 
 	 */
-	public static final int CurrentAPIVersion = 2;
+	public static final int CurrentAPIVersion = 3;
 	
 	private static final String PNAME = "LauncherMetadata.";
 	
